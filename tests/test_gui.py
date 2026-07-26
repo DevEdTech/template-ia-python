@@ -25,10 +25,10 @@ def test_main_executa_loop_da_gui() -> None:
 
 
 def test_main_explica_quando_gui_nao_esta_disponivel(
-    capsys: pytest.CaptureFixture[str],
+    caplog: pytest.LogCaptureFixture,
 ) -> None:
     def unavailable() -> FakeWindow:
         raise GuiUnavailableError("sem display")
 
     assert main(unavailable) == 1
-    assert capsys.readouterr().err.strip() == "GUI indisponível: sem display"
+    assert "GUI indisponível: sem display" in caplog.text

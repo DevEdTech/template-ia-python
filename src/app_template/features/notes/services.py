@@ -3,8 +3,11 @@ from __future__ import annotations
 import json
 import os
 import sys
-import warnings
 from pathlib import Path
+
+from app_template.logger import get_logger
+
+logger = get_logger(__name__)
 
 _STATE_FILENAME = "notes.json"
 _ENV_DATA_DIR = "APP_TEMPLATE_DATA_DIR"
@@ -51,4 +54,4 @@ def save_notes(notes: list[dict[str, str]]) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(notes), encoding="utf-8")
     except OSError as e:
-        warnings.warn(f"Falha ao persistir notas localmente: {e}", stacklevel=2)
+        logger.warning(f"Falha ao persistir notas localmente: {e}")

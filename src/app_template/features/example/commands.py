@@ -7,7 +7,6 @@ com outras interfaces vive em `use_cases.py`.
 from __future__ import annotations
 
 import argparse
-import sys
 from typing import Any
 
 from app_template.features.example.use_cases import (
@@ -15,6 +14,9 @@ from app_template.features.example.use_cases import (
     get_count,
     increase_count,
 )
+from app_template.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 def _handle_show(_args: argparse.Namespace) -> int:
@@ -29,7 +31,7 @@ def _handle_up(args: argparse.Namespace) -> int:
         print(increase_count(args.step))
         return 0
     except ValueError as e:
-        print(f"Erro: {e}", file=sys.stderr)
+        logger.error(f"Erro: {e}")
         return 1
 
 
@@ -39,7 +41,7 @@ def _handle_down(args: argparse.Namespace) -> int:
         print(decrease_count(args.step))
         return 0
     except ValueError as e:
-        print(f"Erro: {e}", file=sys.stderr)
+        logger.error(f"Erro: {e}")
         return 1
 
 

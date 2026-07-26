@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 import argparse
-import sys
 from typing import Any
 
 from app_template.features.notes.use_cases import add_note, list_notes, remove_note
+from app_template.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 def _handle_add(args: argparse.Namespace) -> int:
@@ -13,7 +15,7 @@ def _handle_add(args: argparse.Namespace) -> int:
         print(f"Nota adicionada com sucesso! (ID: {note.id})")
         return 0
     except ValueError as e:
-        print(f"Erro: {e}", file=sys.stderr)
+        logger.error(f"Erro: {e}")
         return 1
 
 
@@ -36,7 +38,7 @@ def _handle_remove(args: argparse.Namespace) -> int:
         print(f"Nota {args.id} removida com sucesso!")
         return 0
     else:
-        print(f"Erro: Nota com ID {args.id} não encontrada.", file=sys.stderr)
+        logger.error(f"Erro: Nota com ID {args.id} não encontrada.")
         return 1
 
 

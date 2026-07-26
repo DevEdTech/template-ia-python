@@ -6,12 +6,14 @@ CLI não falham apenas porque o sistema não oferece o componente gráfico.
 
 from __future__ import annotations
 
-import sys
 from collections.abc import Callable
 from typing import Protocol
 
 from app_template.features.example import create_example_panel
 from app_template.features.notes import create_notes_panel
+from app_template.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class GuiWindow(Protocol):
@@ -57,7 +59,7 @@ def main(window_factory: WindowFactory | None = None) -> int:
     try:
         window = factory()
     except GuiUnavailableError as exc:
-        print(f"GUI indisponível: {exc}", file=sys.stderr)
+        logger.error(f"GUI indisponível: {exc}")
         return 1
     window.mainloop()
     return 0
