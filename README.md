@@ -58,6 +58,22 @@ python scripts/setup_project.py
 
 O `setup_project.py` renomeia o pacote, personaliza nome e descrição, remove a feature de exemplo (opcional) e sincroniza as skills dos agentes.
 
+## Prompts Iniciais Recomendados (Copie e Cole)
+
+Para ter o melhor fluxo de trabalho com seu agente de IA, utilize estes prompts iniciais em ordem:
+
+**1. Inicialização do Projeto:**
+> "Rode o comando `uv sync` seguido de `python scripts/setup_project.py`. Preencha as informações do novo projeto respondendo às perguntas do script interativo, se houver, ou me pergunte o que colocar."
+
+**2. Concepção do Produto (se a ideia for nova):**
+> "Use a skill `plan-app` para conduzir uma entrevista curta comigo e definirmos o escopo deste produto. Ao final, gere o PRD e atualize as decisões de arquitetura."
+
+**3. Planejamento de Funcionalidade:**
+> "Use a skill `plan-feature` para planejar a funcionalidade: [Descreva a funcionalidade aqui]. Quero revisar o plano antes da implementação."
+
+**4. Implementação e Validação:**
+> "Use a skill `implement-feature` para executar o plano aprovado. Lembre-se de seguir a arquitetura estabelecida e garantir que `python scripts/dev.py validate` passe limpo ao concluir."
+
 ## Execução
 
 Rode a CLI de exemplo:
