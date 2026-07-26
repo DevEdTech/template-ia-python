@@ -13,6 +13,7 @@ from __future__ import annotations
 import json
 import os
 import sys
+import warnings
 from pathlib import Path
 
 _STATE_FILENAME = "counter.json"
@@ -66,5 +67,8 @@ def load_count() -> int:
 def save_count(value: int) -> None:
     """Persiste o valor atual do contador, criando o diretorio se preciso."""
     path = _state_path()
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps({"count": value}), encoding="utf-8")
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps({"count": value}), encoding="utf-8")
+    except OSError as e:
+        warnings.warn(f"Falha ao persistir estado local: {e}", stacklevel=2)

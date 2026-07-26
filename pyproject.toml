@@ -60,7 +60,6 @@ packages = ["src/app_template"]
 # ---------------------------------------------------------------------------
 [tool.ruff]
 line-length = 100
-target-version = "py311"
 src = ["src", "tests", "scripts"]
 
 [tool.ruff.lint]
@@ -77,12 +76,15 @@ select = [
   "C4",  # flake8-comprehensions
   "PTH", # flake8-use-pathlib
   "RUF", # regras proprias do ruff
+  "S",   # flake8-bandit (segurança)
 ]
 ignore = []
 
 [tool.ruff.lint.per-file-ignores]
 # Testes podem usar asserts e nomes menos rigidos.
-"tests/**/*.py" = ["N802", "N803"]
+"tests/**/*.py" = ["N802", "N803", "S101"]
+# Scripts locais confiam nos subcomandos
+"scripts/**/*.py" = ["S603", "S607"]
 
 [tool.ruff.format]
 quote-style = "double"
@@ -99,7 +101,6 @@ warn_redundant_casts = true
 warn_unused_ignores = true
 disallow_untyped_defs = true
 disallow_any_generics = true
-no_implicit_optional = true
 show_error_codes = true
 files = ["src", "tests", "scripts"]
 

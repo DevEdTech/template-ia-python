@@ -7,6 +7,8 @@ com outras interfaces vive em `use_cases.py`.
 from __future__ import annotations
 
 import argparse
+import sys
+from typing import Any
 
 from app_template.features.example.use_cases import (
     decrease_count,
@@ -23,18 +25,26 @@ def _handle_show(_args: argparse.Namespace) -> int:
 
 def _handle_up(args: argparse.Namespace) -> int:
     """Incrementa e persiste o contador."""
-    print(increase_count(args.step))
-    return 0
+    try:
+        print(increase_count(args.step))
+        return 0
+    except ValueError as e:
+        print(f"Erro: {e}", file=sys.stderr)
+        return 1
 
 
 def _handle_down(args: argparse.Namespace) -> int:
     """Decrementa e persiste o contador."""
-    print(decrease_count(args.step))
-    return 0
+    try:
+        print(decrease_count(args.step))
+        return 0
+    except ValueError as e:
+        print(f"Erro: {e}", file=sys.stderr)
+        return 1
 
 
 def register_example_commands(
-    subparsers: argparse._SubParsersAction[argparse.ArgumentParser],
+    subparsers: Any,
 ) -> None:
     """Registra o grupo de comandos `count` no parser raiz."""
     count = subparsers.add_parser("count", help="Contador de exemplo persistente.")

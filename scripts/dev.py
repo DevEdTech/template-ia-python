@@ -98,7 +98,7 @@ def task_test_cov(args: list[str]) -> int:
 
 
 def task_build(args: list[str]) -> int:
-    return _run(_build_cmd())
+    return _run([*_build_cmd(), *args])
 
 
 def task_build_exe(args: list[str]) -> int:
@@ -156,20 +156,24 @@ def print_help() -> None:
 
 
 def main(argv: list[str] | None = None) -> int:
-    args = list(sys.argv[1:] if argv is None else argv)
-    if not args or args[0] in {"help", "-h", "--help"}:
-        print_help()
-        return 0
+    try:
+        args = list(sys.argv[1:] if argv is None else argv)
+        if not args or args[0] in {"help", "-h", "--help"}:
+            print_help()
+            return 0
 
-    task_name, *rest = args
-    entry = TASKS.get(task_name)
-    if entry is None:
-        print(f"Tarefa desconhecida: {task_name!r}\n", file=sys.stderr)
-        print_help()
-        return 2
+        task_name, *rest = args
+        entry = TASKS.get(task_name)
+        if entry is None:
+            print(f"Tarefa desconhecida: {task_name!r}\n", file=sys.stderr)
+            print_help()
+            return 2
 
-    func, _desc = entry
-    return func(rest)
+        func, _desc = entry
+        return func(rest)
+    except KeyboardInterrupt:
+        print("\nCancelado pelo usuário.", file=sys.stderr)
+        return 130
 
 
 if __name__ == "__main__":
