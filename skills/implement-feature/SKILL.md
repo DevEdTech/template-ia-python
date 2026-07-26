@@ -22,11 +22,13 @@ verificadas.
 3. Limite as alterações ao escopo da tarefa.
 4. Não expanda o escopo nem antecipe trabalho futuro.
 5. Reutilize os padrões e módulos já existentes.
-6. Mantenha a lógica pura em `model.py` e o I/O em `services.py`.
-7. Use type hints em todo código novo.
-8. Adicione ou atualize os testes de comportamento afetados.
-9. Execute `python scripts/dev.py validate`.
-10. Revise o diff final.
+6. Mantenha a lógica pura em `model.py`, o I/O em `services.py` e a orquestração compartilhada em `use_cases.py`.
+7. Mantenha CLI e GUI como adaptadores finos dos mesmos casos de uso; não duplique regra de negócio.
+8. Não bloqueie o loop de eventos da GUI com trabalho demorado.
+9. Use type hints em todo código novo.
+10. Adicione ou atualize os testes de comportamento afetados.
+11. Execute `python scripts/dev.py validate`.
+12. Revise o diff final.
 
 ## Resultado esperado
 

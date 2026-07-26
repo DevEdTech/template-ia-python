@@ -1,17 +1,14 @@
 #!/usr/bin/env python3
-"""Gera um executavel standalone da aplicacao com PyInstaller.
+"""Gera executáveis standalone para as interfaces CLI ou GUI.
 
-Cross-platform: roda no Windows, macOS e Linux usando apenas stdlib para orquestrar.
-IMPORTANTE: o PyInstaller NAO faz cross-compilacao. Cada executavel precisa ser
-gerado NO sistema operacional de destino. Para gerar os tres (win/mac/linux) de
-uma vez, use a matriz de CI em .github/workflows/build.yml.
+Cross-platform: roda no Windows, macOS e Linux usando apenas stdlib para
+orquestrar. O PyInstaller não faz cross-compilação; gere cada executável no
+sistema operacional de destino.
 
 Uso:
-    python scripts/build_exe.py              # gera dist/app-template[.exe]
-    python scripts/build_exe.py --name meucli
-
-O nome do executavel e do modulo de entrada refletem o pacote `app_template`.
-Ajuste ENTRY_MODULE / DEFAULT_NAME apos renomear o pacote no setup.
+    python scripts/build_exe.py
+    python scripts/build_exe.py --interface gui
+    python scripts/build_exe.py --interface gui --name meu-app
 """
 
 from __future__ import annotations
@@ -22,50 +19,72 @@ import shutil
 import subprocess
 import sys
 from pathlib import Path
+from typing import Literal
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
-# Modulo com o bloco `if __name__ == "__main__"` que inicia a app.
-ENTRY_MODULE = PROJECT_ROOT / "src" / "app_template" / "__main__.py"
-DEFAULT_NAME = "app-template"
+Interface = Literal["cli", "gui"]
+ENTRY_MODULES: dict[Interface, Path] = {
+    "cli": PROJECT_ROOT / "src" / "app_template" / "__main__.py",
+    "gui": PROJECT_ROOT / "src" / "app_template" / "gui.py",
+}
+DEFAULT_NAMES: dict[Interface, str] = {
+    "cli": "app-template",
+    "gui": "app-template-gui",
+}
 
 
-def _pyinstaller_cmd(name: str) -> list[str]:
-    """Monta o comando do PyInstaller, preferindo `uv run` quando disponivel."""
+def _pyinstaller_cmd(name: str, interface: Interface, entry_module: Path) -> list[str]:
+    """Monta o comando do PyInstaller para a interface escolhida."""
     base = (
         ["uv", "run", "pyinstaller"]
         if shutil.which("uv")
         else [sys.executable, "-m", "PyInstaller"]
     )
+    mode = ["--windowed"] if interface == "gui" else []
     return [
         *base,
-        "--onefile",  # um unico arquivo executavel
+        "--onefile",
+        *mode,
         "--name",
         name,
         "--paths",
-        str(PROJECT_ROOT / "src"),  # garante que `app_template` seja encontrado
+        str(PROJECT_ROOT / "src"),
         "--clean",
         "--noconfirm",
-        str(ENTRY_MODULE),
+        str(entry_module),
     ]
 
 
 def main(argv: list[str] | None = None) -> int:
-    parser = argparse.ArgumentParser(description="Gera o executavel standalone (PyInstaller).")
-    parser.add_argument("--name", default=DEFAULT_NAME, help="Nome do executavel gerado.")
+    parser = argparse.ArgumentParser(
+        description="Gera um executável standalone para a CLI ou a GUI."
+    )
+    parser.add_argument(
+        "--interface",
+        choices=("cli", "gui"),
+        default="cli",
+        help="Interface a empacotar (padrão: cli).",
+    )
+    parser.add_argument("--name", help="Nome do executável gerado.")
     args = parser.parse_args(argv)
 
-    if not ENTRY_MODULE.exists():
-        print(f"Modulo de entrada nao encontrado: {ENTRY_MODULE}", file=sys.stderr)
+    interface: Interface = args.interface
+    entry_module = ENTRY_MODULES[interface]
+    name = args.name or DEFAULT_NAMES[interface]
+
+    if not entry_module.exists():
+        print(f"Módulo de entrada não encontrado: {entry_module}", file=sys.stderr)
         return 1
 
-    cmd = _pyinstaller_cmd(args.name)
+    cmd = _pyinstaller_cmd(name, interface, entry_module)
+    print(f"Interface: {interface}")
     print(f"Sistema: {platform.system()} ({platform.machine()})")
     print(f"$ {' '.join(cmd)}", flush=True)
     result = subprocess.run(cmd, cwd=PROJECT_ROOT, check=False)
     if result.returncode == 0:
         suffix = ".exe" if platform.system() == "Windows" else ""
-        print(f"\nExecutavel gerado em: dist/{args.name}{suffix}")
+        print(f"\nExecutável gerado em: dist/{name}{suffix}")
     return result.returncode
 
 

@@ -1,59 +1,55 @@
 # Build e distribuição multiplataforma
 
-Este template entrega a aplicação de duas formas. Escolha conforme quem vai usar.
+O template entrega pacote Python e executáveis standalone para CLI ou GUI.
 
-| Forma                         | Precisa de Python no destino? | Multiplataforma?                        | Quando usar                                              |
-| ----------------------------- | ----------------------------- | --------------------------------------- | ------------------------------------------------------- |
-| Pacote (wheel + sdist)        | Sim                           | Sim, um único artefato serve a todos    | Distribuir a outros devs; publicar em um índice (PyPI)  |
-| Executável (PyInstaller)      | Não                           | Não — um binário por SO                  | Entregar para quem não tem Python instalado             |
+| Forma | Precisa de Python no destino? | Multiplataforma? | Quando usar |
+| --- | --- | --- | --- |
+| Wheel + sdist | Sim | Sim, para Python compatível | Instalação com pip/uv e distribuição para desenvolvedores |
+| Executável CLI | Não | Um build por sistema | Terminal, automação e scripts |
+| Executável GUI | Não | Um build por sistema | Aplicação desktop sem janela de console |
 
-## 1. Pacote Python (wheel + sdist)
-
-Gera artefatos em `dist/` que instalam em qualquer sistema operacional com Python compatível. O wheel deste projeto é _pure Python_, então o **mesmo arquivo** funciona no Windows, macOS e Linux.
+## Pacote Python
 
 ```bash
 python scripts/dev.py build
 ```
 
-Isso roda `uv build` (ou `python -m build`, se não houver uv) e produz:
+O build gera wheel e sdist em `dist/`. O pacote contém as entradas `app-template` e `app-template-gui`; o usuário executa apenas a interface desejada.
 
-```
-dist/
-├── python_project_template-0.0.0-py3-none-any.whl
-└── python_project_template-0.0.0.tar.gz
-```
-
-Instalar em outra máquina:
-
-```bash
-pip install python_project_template-0.0.0-py3-none-any.whl
-app-template --help
-```
-
-## 2. Executável standalone (PyInstaller)
-
-Gera um único binário que roda **sem Python instalado**. Ótimo para entregar a usuários finais.
+## Executável CLI
 
 ```bash
 python scripts/dev.py build-exe
+# equivalente explícito:
+python scripts/dev.py build-exe --interface cli
 ```
 
-Isso produz `dist/app-template` (ou `dist/app-template.exe` no Windows).
+Saída padrão: `dist/app-template` ou `dist/app-template.exe`.
 
-### Limitação importante: sem cross-compilação
+## Executável GUI
 
-O PyInstaller **não** gera o executável de um SO a partir de outro. Para ter os três (Windows, macOS e Linux), você precisa rodar `python scripts/dev.py build-exe` **em cada sistema** — em uma máquina (ou VM) de cada plataforma — e coletar o binário gerado em `dist/`.
+```bash
+python scripts/dev.py build-exe --interface gui
+```
 
-### Notas por sistema
+Saída padrão: `dist/app-template-gui` ou `dist/app-template-gui.exe`. O build usa a opção windowed do PyInstaller, evitando uma janela de console ao abrir a GUI. O nome pode ser alterado:
 
-- **Windows**: o executável é um `.exe`. O antivírus pode inspecionar binários PyInstaller na primeira execução (comportamento normal).
-- **macOS**: o binário não é assinado nem "notarizado" por padrão; para distribuição ampla, considere assinatura de código (fora do escopo da v1). O executável é específico da arquitetura (Intel x86_64 ou Apple Silicon arm64) do runner.
-- **Linux**: o binário depende da versão da glibc do sistema onde foi gerado. Para compatibilidade ampla, gere em uma distribuição mais antiga (ou em container manylinux).
+```bash
+python scripts/dev.py build-exe --interface gui --name meu-aplicativo
+```
 
-## Versão
+## Tkinter
 
-A versão vem de `pyproject.toml` (`[project].version`) e de `src/app_template/__init__.py` (`__version__`). Mantenha os dois em sincronia ao lançar uma nova versão.
+Tkinter faz parte da biblioteca padrão do Python, mas algumas distribuições Linux o fornecem em pacote separado, como `python3-tk`. O build GUI deve ser executado em um ambiente onde Tkinter esteja disponível. A CLI e o pacote continuam utilizáveis sem carregar Tkinter.
 
-## Reprodutibilidade
+## Sem cross-compilação
 
-Versione o `uv.lock` (ou um `requirements.txt` travado). Assim, ao gerar o build em cada sistema, o mesmo lock garante versões idênticas de dependências e builds reproduzíveis.
+PyInstaller gera artefatos para o sistema e arquitetura atuais. Produzir um executável em cada ambiente de destino:
+
+- Windows: arquivo `.exe`.
+- macOS: binário específico de Intel ou Apple Silicon; assinatura e notarização ficam fora do escopo inicial.
+- Linux: compatibilidade depende da glibc do ambiente de build; preferir uma distribuição-base antiga quando necessário.
+
+## Versão e reprodutibilidade
+
+A versão vem de `pyproject.toml` e `src/app_template/__init__.py`. Manter ambas sincronizadas. Versionar `uv.lock`, ou outro lockfile adotado, para builds reproduzíveis.

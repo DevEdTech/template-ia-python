@@ -1,7 +1,7 @@
 """Adaptador de persistencia da feature de exemplo.
 
 Todo acesso ao disco fica isolado aqui (camada de services), nunca diretamente
-no model (logica pura) nem no wiring da CLI. Assim, trocar o meio de persistencia
+no model (logica pura) nem nos adaptadores de interface. Assim, trocar o meio de persistencia
 nao afeta a logica nem os comandos.
 
 O contador e salvo em um arquivo JSON dentro do diretorio de dados do usuario,

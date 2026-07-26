@@ -2,71 +2,83 @@
 
 ## Filosofia
 
-Testamos o **comportamento observável** da aplicação: o que entra e o que sai. Não testamos detalhes internos de implementação. Um bom teste continua passando mesmo que você reorganize o código por dentro, desde que o comportamento continue o mesmo.
+Testar o **comportamento observável**: entradas, saídas, arquivos produzidos e respostas às ações do usuário. Os testes devem continuar válidos quando a implementação interna mudar.
 
 ## Ferramenta
 
-Usamos **pytest**. A configuração está em `pyproject.toml` (`[tool.pytest.ini_options]`), com `pythonpath = ["src"]` para que os testes importem o pacote sem instalação extra.
+Usar pytest, configurado em `pyproject.toml`. A suíte padrão deve executar em ambiente headless, sem monitor ou servidor gráfico.
 
 ## Tipos de teste
 
-- **Unidade**: funções e lógica isoladas — principalmente o `model.py` (puro e determinístico).
-- **Comportamento (end-to-end da CLI)**: exercitam o ponto de entrada real (`main`), do parsing dos argumentos até o efeito observável (saída no terminal, arquivo persistido).
+- **Modelo**: regras puras de `model.py`.
+- **Casos de uso**: orquestração de `model.py` e `services.py` compartilhada por todas as interfaces.
+- **CLI**: parsing, saída, código de retorno e persistência.
+- **GUI sem display**: entrada da aplicação, controladores e tratamento de indisponibilidade usando janelas ou dependências falsas.
+- **GUI com display**: reservar para poucos testes de integração quando houver infraestrutura própria e valor comprovado.
 
 ## Localização
 
-Os testes ficam em `tests/`, espelhando a estrutura das features:
-
 ```
 tests/
-├── conftest.py               # fixtures compartilhadas e neutras
+├── conftest.py
+├── test_gui.py
 └── features/
     └── minha-feature/
-        ├── test_model.py     # lógica pura
-        └── test_commands.py  # comportamento da CLI
+        ├── test_model.py
+        ├── test_use_cases.py
+        ├── test_commands.py
+        └── test_gui.py        # quando existir lógica observável no adaptador
 ```
-
-> **Por que fora de `src/`?** No layout `src/`, manter os testes separados evita que eles entrem no pacote distribuído e força os testes a importarem o código como um usuário faria.
 
 ## Comandos
 
 ```bash
-python scripts/dev.py test        # roda os testes uma vez
-python scripts/dev.py test-cov    # roda medindo cobertura
-```
-
-Você também pode passar argumentos direto ao pytest:
-
-```bash
+python scripts/dev.py test
+python scripts/dev.py test-cov
 python scripts/dev.py test -k nome_do_teste -v
 ```
 
 ## Isolamento de I/O
 
-Testes não devem tocar em dados reais do usuário. Use `tmp_path` e `monkeypatch` do pytest para redirecionar a persistência. O template já traz a fixture `isolated_data_dir` (em `tests/conftest.py`), que aponta o diretório de dados para uma pasta temporária.
+Testes não devem tocar dados reais. Usar `tmp_path` e `monkeypatch` para redirecionar persistência e ambiente. A fixture `isolated_data_dir` já aponta os dados da feature de exemplo para uma pasta temporária.
 
-## Exemplo curto
+## Testes de GUI
+
+Não criar `Tk()` na suíte padrão. Separar regra e orquestração dos widgets, injetar uma fábrica de janela quando necessário e observar chamadas, estado apresentado ou mensagens de erro.
+
+Exemplo:
 
 ```python
-from app_template.cli import main
+from app_template.gui import main
 
 
-def test_up_incrementa(isolated_data_dir, capsys):
-    assert main(["count", "up"]) == 0
-    assert capsys.readouterr().out.strip() == "1"
+class FakeWindow:
+    def __init__(self) -> None:
+        self.started = False
+
+    def mainloop(self) -> None:
+        self.started = True
+
+
+def test_gui_inicia_loop() -> None:
+    window = FakeWindow()
+
+    assert main(lambda: window) == 0
+    assert window.started is True
 ```
 
-O foco é no que a aplicação produz, não em como o código foi escrito por dentro.
+Isso testa o contrato da entrada gráfica sem depender de display, resolução ou sistema operacional.
 
-## O que NÃO testar
+## O que não testar
 
 - Estado interno ou nomes de variáveis.
-- Detalhes de implementação de bibliotecas de terceiros.
-- Casos impossíveis só para "aumentar cobertura".
+- Detalhes do Tkinter, argparse ou bibliotecas de terceiros.
+- Posição e cor puramente visuais sem impacto comportamental.
+- Casos impossíveis apenas para aumentar cobertura.
 
 ## Investigar falhas
 
-1. Leia a mensagem de erro: o pytest indica o que era esperado e o que aconteceu.
-2. Rode um teste específico com `-k` e `-v` para focar.
-3. Se um teste falha após uma mudança de comportamento intencional, atualize o teste para o novo comportamento esperado.
-4. Se a falha for inesperada, corrija o código, não o teste.
+1. Ler a mensagem de erro e reproduzir o menor caso.
+2. Rodar o teste específico com `-k` e `-v`.
+3. Em falhas de GUI, distinguir erro de comportamento de indisponibilidade de display.
+4. Atualizar o teste somente quando o comportamento mudou intencionalmente; caso contrário, corrigir o código.

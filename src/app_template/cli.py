@@ -1,10 +1,9 @@
-"""Composicao da CLI da aplicacao (camada `app`).
+"""Composição da interface de linha de comando da aplicação.
 
 Responsabilidade: montar o parser de argumentos e delegar cada comando para a
-feature correspondente. NAO contem regra de negocio — assim como a camada `app`
-do template web apenas compoe providers e rotas.
+feature correspondente. Não contém regra de negócio nem implementação gráfica.
 
-A CLI usa `argparse` da biblioteca padrao para manter zero dependencias de
+A interface usa `argparse` da biblioteca padrao para manter zero dependencias de
 runtime. Se um dia a complexidade justificar uma lib (ex.: Typer, Click),
 registre a decisao em docs/decisions/ antes de adicionar.
 """

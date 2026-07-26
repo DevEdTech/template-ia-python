@@ -10,7 +10,7 @@ O script e interativo. Em ambiente sem TTY (CI, pipes) ele apenas explica o uso
 e sai com codigo 0, sem falhar.
 
 O que ele faz:
-  - Renomeia o pacote `app_template` (import) e o comando/dist `app-template`.
+  - Renomeia o pacote `app_template` e os comandos/distribuição `app-template`.
   - Atualiza name/description no pyproject.toml e o titulo do README.
   - (Opcional) remove a feature de exemplo e reinicia o tasks.md.
   - (Opcional) sincroniza as skills.
@@ -127,7 +127,7 @@ def remove_example_feature() -> None:
     if tests_feature.exists():
         shutil.rmtree(tests_feature)
         log(f"Testes de exemplo removidos: {tests_feature.relative_to(PROJECT_ROOT)}")
-    log("Atencao: ajuste cli.py e o __init__ de features para nao importar o exemplo.")
+    log("Atencao: ajuste cli.py, gui.py e o __init__ de features para nao importar o exemplo.")
 
 
 def init_docs() -> None:
@@ -175,7 +175,7 @@ def main() -> int:
 
     log("Configuracao do novo projeto a partir do template.\n")
 
-    name_raw = input("Nome do projeto (ex.: meu-cli): ").strip()
+    name_raw = input("Nome do projeto (ex.: meu-app): ").strip()
     project_name = name_raw or PLACEHOLDER_DIST
     package_name = slugify_package(project_name)
     log(f'  -> pacote importavel: "{package_name}"\n')
@@ -206,6 +206,7 @@ def main() -> int:
     log('  1. Instale as dependencias:  uv sync  (ou: pip install -e ".[dev]")')
     log("  2. Valide o projeto:         python scripts/dev.py validate")
     log("  3. Rode a CLI:               uv run app-template --help")
+    log("  4. Rode a GUI:               uv run app-template-gui")
     return 0
 
 

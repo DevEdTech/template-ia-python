@@ -1,12 +1,12 @@
 [project]
 name = "python-project-template"
 version = "0.0.0"
-description = "Template de projeto Python (CLI) com qualidade e build multiplataforma prontos."
+description = "Template de aplicações Python com CLI ou GUI, qualidade e build multiplataforma prontos."
 readme = "README.md"
 requires-python = ">=3.11"
 license = { text = "Proprietary" }
 authors = [{ name = "Sua organizacao" }]
-keywords = ["template", "cli", "python"]
+keywords = ["template", "cli", "gui", "python"]
 
 # O template nao exige nenhuma dependencia de runtime por padrao.
 # A feature de exemplo usa apenas a biblioteca padrao (stdlib).
@@ -18,6 +18,10 @@ dependencies = []
 # Ponto de entrada da CLI. Apos instalar (uv sync / pip install -e .),
 # o comando "app-template" fica disponivel no terminal.
 app-template = "app_template.cli:main"
+
+[project.gui-scripts]
+# Entrada gráfica. No Windows, gui-scripts evita abrir uma janela de console.
+app-template-gui = "app_template.gui:main"
 
 # Grupos de dependencias de desenvolvimento (PEP 735). O uv instala o grupo
 # "dev" automaticamente. Com pip: `pip install -e ".[dev]"` usa o optional

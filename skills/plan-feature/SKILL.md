@@ -24,8 +24,8 @@ alterar qualquer código.
 2. Identifique o objetivo e os critérios de aceite.
 3. Liste os requisitos e as lacunas de informação.
 4. Declare as suposições necessárias para prosseguir.
-5. Identifique os módulos e features envolvidos (`model`, `services`, `commands`).
-6. Proponha a solução mínima que atende ao objetivo.
+5. Identifique os módulos e features envolvidos (`model`, `services`, `use_cases`) e os adaptadores necessários (`commands` para CLI, `gui` para GUI).
+6. Confirme quais interfaces fazem parte do escopo e proponha a solução mínima que atende ao objetivo.
 7. Verifique se a stdlib resolve antes de propor qualquer dependência.
 8. Divida o trabalho em tarefas pequenas e sequenciais.
 9. Liste os riscos e os pontos de atenção (inclusive portabilidade entre SOs).

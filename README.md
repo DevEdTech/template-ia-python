@@ -1,16 +1,17 @@
 # python-project-template
 
-Template de projeto Python (aplicação de linha de comando), pensado para pessoas que constroem ferramentas com a ajuda de agentes de código. Vem com organização de pastas, padrões de qualidade, testes, **build multiplataforma (Windows, macOS e Linux)** e instruções para agentes já prontos.
+Template de projeto Python para aplicações com linha de comando ou interface gráfica, pensado para pessoas que constroem ferramentas com a ajuda de agentes de código. Vem com organização de pastas, padrões de qualidade, testes, **build multiplataforma (Windows, macOS e Linux)** e instruções para agentes já prontos.
 
 ## Objetivo
 
-Dar um ponto de partida seguro e organizado para criar aplicações Python simples. Você descreve o que quer, o agente implementa seguindo as regras deste template, e você valida com um único comando.
+Dar um ponto de partida seguro e organizado para criar aplicações Python simples, com CLI, GUI ou ambas. Você descreve o que quer, o agente implementa seguindo as regras deste template, e você valida com um único comando.
 
 ## Quando usar
 
 Indicado para:
 
 - Ferramentas de linha de comando (CLI)
+- Aplicações desktop simples com interface gráfica (GUI)
 - Automações e scripts de processamento
 - Utilitários de dados (leitura/transformação de arquivos)
 - Protótipos e provas de conceito
@@ -23,7 +24,7 @@ Indicado para:
 - Sistemas de alta criticidade ou financeiros
 - Serviços que exigem autenticação real e armazenamento seguro de segredos
 - Pipelines de dados de grande escala ou infraestrutura crítica
-- Aplicativos móveis ou desktop com interface gráfica rica
+- Aplicativos móveis ou interfaces gráficas ricas, 3D ou multimídia avançada
 
 ## Pré-requisitos
 
@@ -67,11 +68,15 @@ uv run app-template count up
 uv run app-template count show
 ```
 
-Sem uv (com o ambiente ativado):
+Abra a GUI de exemplo:
 
 ```bash
-python -m app_template --help
+uv run app-template-gui
+# ou
+uv run python -m app_template.gui
 ```
+
+Sem uv, ative o ambiente e use `app-template`, `app-template-gui` ou `python -m app_template`.
 
 ## Validação
 
@@ -97,7 +102,7 @@ O runner `scripts/dev.py` é o equivalente cross-platform ao `npm run` — funci
 | `python scripts/dev.py test`             | Roda os testes com pytest                                        |
 | `python scripts/dev.py test-cov`         | Roda os testes medindo cobertura                                 |
 | `python scripts/dev.py build`            | Gera o pacote distribuível (wheel + sdist)                       |
-| `python scripts/dev.py build-exe`        | Gera o executável standalone do SO atual (PyInstaller)          |
+| `python scripts/dev.py build-exe`        | Gera executável CLI ou GUI do SO atual (PyInstaller)             |
 | `python scripts/dev.py sync-skills`      | Sincroniza as skills para `.claude/skills` e `.agents/skills`    |
 | `python scripts/dev.py check-skills`     | Verifica se as cópias das skills estão sincronizadas             |
 | `python scripts/dev.py validate`         | Roda tudo: skills, format, lint, typecheck, testes e build       |
@@ -109,20 +114,23 @@ O runner `scripts/dev.py` é o equivalente cross-platform ao `npm run` — funci
 Há dois formatos de entrega, e o guia completo está em [docs/building.md](docs/building.md):
 
 - **Pacote Python (wheel + sdist)** — multiplataforma por natureza. `python scripts/dev.py build` gera artefatos em `dist/` que instalam em qualquer SO com Python.
-- **Executável standalone (PyInstaller)** — um binário que roda sem Python instalado. `python scripts/dev.py build-exe` gera o executável **do sistema em que você está**. Como o PyInstaller não faz cross-compilação, cada executável (Windows, macOS, Linux) precisa ser gerado no próprio sistema operacional.
+- **Executável standalone (PyInstaller)** — um binário que roda sem Python instalado. Use `python scripts/dev.py build-exe` para CLI ou acrescente `--interface gui` para GUI. O executável é gerado **para o sistema atual**; não há cross-compilação.
 
 ## Estrutura resumida
 
 ```
 src/
 └── app_template/         # pacote da aplicação (renomeado no setup)
-    ├── __main__.py       # permite `python -m app_template`
-    ├── cli.py            # composição da CLI (app) — sem regra de negócio
+    ├── __main__.py       # mantém `python -m app_template` como entrada CLI
+    ├── cli.py            # composição da CLI — sem regra de negócio
+    ├── gui.py            # composição da GUI — sem regra de negócio
     ├── features/         # cada capacidade do produto em sua pasta
     │   └── example/      # exemplo mínimo; removido/renomeado no setup
     │       ├── model.py      # lógica pura
     │       ├── services.py   # I/O e persistência
-    │       └── commands.py   # ligação com a CLI
+    │       ├── use_cases.py  # orquestração compartilhada
+    │       ├── commands.py   # adaptador da CLI
+    │       └── gui.py        # adaptador da GUI
     └── shared/           # reutilizável e neutro (types, lib)
 tests/                    # espelham a estrutura das features
 docs/                     # esta documentação
@@ -142,10 +150,14 @@ Além disso, há skills que guiam tarefas comuns. Veja [docs/agents.md](docs/age
 
 ## Como criar uma feature
 
+Se a ideia do aplicativo ainda não tem escopo fechado, comece com: "Use a skill plan-app para me ajudar a definir este produto". A skill conduz a conversa em linguagem simples, cria `docs/prd.md` após sua aprovação e registra as decisões em `docs/architecture.md`.
+
+Depois que o produto estiver definido:
+
 1. Peça ao agente um plano: "Use a skill plan-feature para planejar...".
 2. Revise o plano.
 3. Peça a implementação: "Use a skill implement-feature...".
-4. Crie a pasta em `src/app_template/features/<nome>` com `model.py`, `services.py`, `commands.py` e um `__init__.py` que expõe a interface pública.
+4. Crie a pasta em `src/app_template/features/<nome>` com `model.py`, `services.py`, `use_cases.py`, os adaptadores necessários (`commands.py` e/ou `gui.py`) e um `__init__.py` que expõe a interface pública.
 5. Adicione testes em `tests/features/<nome>/`.
 6. Rode `python scripts/dev.py validate`.
 
@@ -158,6 +170,7 @@ Decisões relevantes de arquitetura ou tecnologia viram um ADR (Architecture Dec
 ## Limitações conhecidas
 
 - Zero dependências de runtime por padrão: a feature de exemplo usa só a biblioteca padrão.
+- A GUI de exemplo usa Tkinter, que pode exigir a instalação do pacote Tk do sistema em algumas distribuições Linux.
 - Sem autenticação real nem armazenamento seguro de segredos.
 - Executáveis nativos precisam ser gerados no próprio SO de destino (um build por sistema).
 - Voltado a aplicações simples; não substitui projetos de alta criticidade.

@@ -24,8 +24,10 @@
 - Organize as capacidades do produto em `src/<pacote>/features`.
 - Não importe módulos internos de outra feature.
 - Use a interface pública das features (o `__init__.py` de cada uma).
+- Mantenha a lógica de negócio em `model.py` e a orquestração compartilhada em `use_cases.py`.
 - Mantenha APIs externas e persistência atrás de serviços (`services.py`).
-- Mantenha a lógica de negócio em `model.py` (funções puras, sem I/O).
+- Isole adaptações de interface: `commands.py` para CLI e `gui.py` para GUI.
+- Mantenha as composições `src/<pacote>/cli.py` e `src/<pacote>/gui.py` sem regra de negócio.
 - Mantenha `shared` neutro em relação ao domínio.
 - Não adicione abstrações sem necessidade demonstrada.
 
@@ -48,6 +50,7 @@
 - Funções e módulos públicos têm docstrings claras.
 - Prefira `pathlib` a manipulação de strings de caminho.
 - Escreva código portável entre Windows, macOS e Linux.
+- Não bloqueie o loop de eventos da GUI com I/O ou processamento demorado.
 
 ## Persistência e APIs
 
@@ -58,6 +61,7 @@
 
 - Toda mudança de comportamento deve considerar testes (pytest).
 - Teste o resultado observável, não os detalhes internos.
+- Teste GUI com casos de uso, controladores ou janelas falsas; não dependa de display real na suíte padrão.
 
 ## Documentação
 

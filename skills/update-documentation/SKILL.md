@@ -21,7 +21,7 @@ código.
 2. Verifique as variáveis de ambiente e o `.env.example`.
 3. Verifique se a arquitetura descrita reflete o código.
 4. Atualize a descrição das funcionalidades alteradas.
-5. Verifique se o guia de build (`docs/building.md`) segue correto.
+5. Verifique se entradas CLI/GUI e o guia de build (`docs/building.md`) seguem corretos.
 6. Registre limitações conhecidas.
 7. Registre decisões relevantes como ADR em `docs/decisions`.
 8. Atualize a documentação de integrações externas.

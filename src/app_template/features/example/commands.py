@@ -1,47 +1,42 @@
-"""Ligacao da feature de exemplo com a CLI (camada `commands`).
+"""Adaptador da feature de exemplo para a interface de linha de comando.
 
-Aqui os subcomandos sao registrados e os handlers orquestram model + services.
-Nenhuma regra de negocio vive neste arquivo: a logica esta em `model` e o acesso
-ao disco em `services`.
+Os handlers convertem argumentos e saídas da CLI. A orquestração compartilhada
+com outras interfaces vive em `use_cases.py`.
 """
 
 from __future__ import annotations
 
 import argparse
 
-from app_template.features.example.model import decrement, increment
-from app_template.features.example.services import load_count, save_count
+from app_template.features.example.use_cases import (
+    decrease_count,
+    get_count,
+    increase_count,
+)
 
 
 def _handle_show(_args: argparse.Namespace) -> int:
     """Mostra o valor atual do contador."""
-    print(load_count())
+    print(get_count())
     return 0
 
 
 def _handle_up(args: argparse.Namespace) -> int:
     """Incrementa e persiste o contador."""
-    new_value = increment(load_count(), args.step)
-    save_count(new_value)
-    print(new_value)
+    print(increase_count(args.step))
     return 0
 
 
 def _handle_down(args: argparse.Namespace) -> int:
-    """Decrementa (nunca abaixo de zero) e persiste o contador."""
-    new_value = decrement(load_count(), args.step)
-    save_count(new_value)
-    print(new_value)
+    """Decrementa e persiste o contador."""
+    print(decrease_count(args.step))
     return 0
 
 
 def register_example_commands(
     subparsers: argparse._SubParsersAction[argparse.ArgumentParser],
 ) -> None:
-    """Registra o grupo de comandos `count` no parser raiz.
-
-    Cada subcomando define `handler`, chamado pela camada app (cli.py).
-    """
+    """Registra o grupo de comandos `count` no parser raiz."""
     count = subparsers.add_parser("count", help="Contador de exemplo persistente.")
     count_actions = count.add_subparsers(dest="action", metavar="<acao>")
     count_actions.required = True
