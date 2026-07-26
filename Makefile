@@ -6,7 +6,7 @@
 
 PY ?= python
 
-.PHONY: help format format-check lint lint-fix typecheck test test-cov build build-exe sync-skills check-skills validate
+.PHONY: help format format-check lint lint-fix typecheck test test-cov build build-exe sync-skills check-skills check-architecture check-docs generate-feature smoke-package validate
 
 help:
 	@$(PY) scripts/dev.py help
@@ -43,6 +43,18 @@ sync-skills:
 
 check-skills:
 	@$(PY) scripts/dev.py check-skills
+
+check-architecture:
+	@$(PY) scripts/dev.py check-architecture
+
+check-docs:
+	@$(PY) scripts/dev.py check-docs
+
+generate-feature:
+	@$(PY) scripts/dev.py generate-feature $(ARGS)
+
+smoke-package:
+	@$(PY) scripts/dev.py smoke-package
 
 validate:
 	@$(PY) scripts/dev.py validate

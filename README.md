@@ -56,7 +56,7 @@ pip install -e ".[dev]"
 python scripts/setup_project.py
 ```
 
-O `setup_project.py` renomeia o pacote, personaliza nome e descrição, remove a feature de exemplo (opcional) e sincroniza as skills dos agentes.
+O `setup_project.py` separa nome exibido, distribuição, comando e pacote importável; personaliza descrição, organização, licença e repositório; mantém somente `--interface cli`, `gui` ou `both`; pode remover a demonstração sem quebrar a composição; e sincroniza as skills. Use `--dry-run` para revisar o plano. Repetições com os mesmos valores são idempotentes e falhas restauram o estado anterior.
 
 ## Prompts Iniciais (Copie, Preencha e Cole no Agente)
 
@@ -65,7 +65,7 @@ Escolha o cenário que se encaixa no seu momento e cole no seu agente de IA.
 **Cenário A — "Tenho uma ideia mas não sei o escopo"** *(fluxo completo)*
 ```text
 Estou começando um projeto novo. Faça o seguinte:
-1. Rode `uv sync` e depois `python scripts/setup_project.py --name="[meu-app]" --description="[descreva aqui]" --remove-example --init-docs`.
+1. Rode `uv sync` e depois `python scripts/setup_project.py --name="[meu-app]" --display-name="[Meu App]" --description="[descreva aqui]" --remove-example --reset-tasks`.
 2. Depois, use a skill plan-app para conduzir uma entrevista curta comigo e definirmos juntos o escopo do produto.
 ```
 
@@ -85,8 +85,8 @@ Rode a CLI de exemplo:
 
 ```bash
 uv run app-template --help
-uv run app-template count up
-uv run app-template count show
+uv run app-template notes add "Minha nota"
+uv run app-template notes list
 ```
 
 Abra a GUI de exemplo:
@@ -107,7 +107,7 @@ Antes de considerar qualquer alteração pronta, rode:
 python scripts/dev.py validate
 ```
 
-Esse comando executa, em sequência: verificação das skills, checagem de formatação, lint, checagem de tipos, testes e build. Se todos passarem, a alteração está saudável.
+Esse comando executa, em sequência: verificação das skills, arquitetura e documentação, formatação, lint, checagem de tipos, testes, build e instalação do wheel em um ambiente limpo. Se todos passarem, a alteração está saudável.
 
 ## Comandos
 
@@ -126,7 +126,11 @@ O runner `scripts/dev.py` é o equivalente cross-platform ao `npm run` — funci
 | `python scripts/dev.py build-exe`        | Gera executável CLI ou GUI do SO atual (PyInstaller)             |
 | `python scripts/dev.py sync-skills`      | Sincroniza as skills para `.claude/skills` e `.agents/skills`    |
 | `python scripts/dev.py check-skills`     | Verifica se as cópias das skills estão sincronizadas             |
-| `python scripts/dev.py validate`         | Roda tudo: skills, format, lint, typecheck, testes e build       |
+| `python scripts/dev.py check-architecture` | Verifica as fronteiras entre app, features e shared            |
+| `python scripts/dev.py check-docs`       | Valida links, tarefas e referências da documentação              |
+| `python scripts/dev.py generate-feature --name clientes` | Gera a estrutura inicial de uma feature           |
+| `python scripts/dev.py smoke-package`    | Instala e testa o wheel em um ambiente limpo                     |
+| `python scripts/dev.py validate`         | Roda qualidade, testes, build e smoke do wheel                   |
 
 > **Atalho Unix (opcional):** no macOS e Linux há um `Makefile` — `make validate`, `make test`, etc. No Windows, use os comandos `python scripts/dev.py <tarefa>` acima, que funcionam em qualquer sistema.
 
@@ -146,7 +150,7 @@ src/
     ├── cli.py            # composição da CLI — sem regra de negócio
     ├── gui.py            # composição da GUI — sem regra de negócio
     ├── features/         # cada capacidade do produto em sua pasta
-    │   └── example/      # exemplo mínimo; removido/renomeado no setup
+    │   └── notes/        # demonstração canônica; removida por --remove-example
     │       ├── model.py      # lógica pura
     │       ├── services.py   # I/O e persistência
     │       ├── use_cases.py  # orquestração compartilhada
@@ -178,8 +182,8 @@ Depois que o produto estiver definido:
 1. Peça ao agente um plano: "Use a skill plan-feature para planejar...".
 2. Revise o plano.
 3. Peça a implementação: "Use a skill implement-feature...".
-4. Crie a pasta em `src/app_template/features/<nome>` com `model.py`, `services.py`, `use_cases.py`, os adaptadores necessários (`commands.py` e/ou `gui.py`) e um `__init__.py` que expõe a interface pública.
-5. Adicione testes em `tests/features/<nome>/`.
+4. Gere a base com `python scripts/dev.py generate-feature --name clientes`; acrescente `--interface cli`, `gui` ou `both` e `--dry-run` quando necessário. O gerador cria modelo, contrato de serviço, caso de uso, adaptadores compatíveis e teste, mas não registra a feature na composição.
+5. Complete os testes observáveis da feature.
 6. Rode `python scripts/dev.py validate`.
 
 Regras de arquitetura em [docs/architecture.md](docs/architecture.md).
@@ -190,8 +194,8 @@ Decisões relevantes de arquitetura ou tecnologia viram um ADR (Architecture Dec
 
 ## Limitações conhecidas
 
-- Zero dependências de runtime por padrão: a feature de exemplo usa só a biblioteca padrão.
-- A GUI de exemplo usa Tkinter, que pode exigir a instalação do pacote Tk do sistema em algumas distribuições Linux.
+- Zero dependências de runtime por padrão: a demonstração de notas usa só a biblioteca padrão.
+- A GUI usa Tkinter, que pode exigir a instalação do pacote Tk do sistema em algumas distribuições Linux.
 - Sem autenticação real nem armazenamento seguro de segredos.
 - Executáveis nativos precisam ser gerados no próprio SO de destino (um build por sistema).
 - Voltado a aplicações simples; não substitui projetos de alta criticidade.

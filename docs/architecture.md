@@ -27,7 +27,7 @@ src/
     ├── cli.py            # composição da interface de terminal
     ├── gui.py            # composição da interface gráfica
     ├── features/
-    │   └── example/
+    │   └── notes/          # demonstração canônica
     │       ├── __init__.py   # interface pública da feature
     │       ├── model.py      # tipos e regras puras
     │       ├── services.py   # disco, rede e ambiente
@@ -42,7 +42,7 @@ scripts/                  # runner, setup e build multiplataforma
 docs/                     # documentação e ADRs
 ```
 
-Projetos que usam apenas uma interface podem remover o adaptador e a composição que não se aplicam depois de registrar essa decisão no PRD e na arquitetura.
+O setup aplica de fato a escolha `cli`, `gui` ou `both`: remove composições, adaptadores, testes e entry points que não se aplicam. Uma interface removida só pode ser restaurada recuperando seus arquivos pelo Git.
 
 ## Responsabilidades
 
@@ -71,6 +71,7 @@ Projetos que usam apenas uma interface podem remover o adaptador e a composiçã
 12. Não bloquear o loop de eventos da GUI com rede, disco pesado ou processamento demorado.
 13. Toda mudança de comportamento considera testes.
 14. Toda decisão relevante atualiza a documentação ou gera um ADR.
+15. Consumidores usam apenas o `__init__.py` de outra feature; `check-architecture` verifica essa regra.
 
 ## Interfaces
 
@@ -90,11 +91,11 @@ Callbacks gráficos devem retornar rapidamente. Para rede, arquivos grandes ou C
 
 ## Acesso a APIs e disco
 
-Todo acesso externo passa por `services.py`. Casos de uso chamam o serviço; adaptadores de CLI e GUI recebem apenas resultados ou erros que possam apresentar ao usuário. Ver [integrations.md](integrations.md).
+Todo acesso externo passa por `services.py`. Dados persistidos são validados antes de entrar no modelo e a escrita local usa substituição atômica. O exemplo de notas grava um envelope versionado com revisão, migra o array legado, preserva conteúdo inválido em backup e usa um lock exclusivo com comparação de revisão para impedir perda silenciosa entre processos. Falhas de leitura, conflito e escrita têm códigos estáveis que CLI e GUI apresentam sem confirmar falso sucesso. Ver [integrations.md](integrations.md).
 
 ## Type hints e qualidade
 
-Todo código usa type hints e passa no mypy estrito. Ruff cuida de formatação e lint. As checagens fazem parte de `python scripts/dev.py validate`.
+Todo código usa type hints e passa no mypy estrito. Ruff cuida de formatação e lint, e `check-architecture` aplica os limites entre módulos. As checagens fazem parte de `python scripts/dev.py validate`.
 
 ## Testes
 
@@ -102,7 +103,7 @@ A suíte padrão não depende de display. Model e casos de uso são testados dir
 
 ## Empacotamento e build
 
-O pacote wheel/sdist inclui ambas as interfaces. O PyInstaller gera um executável CLI ou GUI por sistema operacional; a GUI usa modo windowed, sem console. Veja [building.md](building.md).
+O pacote wheel/sdist inclui apenas as interfaces mantidas pelo setup. Após o build, o wheel é instalado sem dependências em um ambiente virtual limpo e sua importação e entrada CLI são exercitadas. O PyInstaller gera um executável CLI ou GUI por sistema operacional; a GUI usa modo windowed, sem console. Veja [building.md](building.md).
 
 ## Evolução incremental
 

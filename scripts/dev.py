@@ -44,6 +44,13 @@ def _script(name: str, *args: str) -> list[str]:
     return [sys.executable, str(SCRIPTS_DIR / name), *args]
 
 
+def _environment_script(name: str, *args: str) -> list[str]:
+    """Executa scripts que precisam da versão Python declarada pelo projeto."""
+    if _HAS_UV:
+        return ["uv", "run", "python", str(SCRIPTS_DIR / name), *args]
+    return _script(name, *args)
+
+
 def _build_cmd() -> list[str]:
     """Comando para gerar wheel + sdist (pacote distribuivel)."""
     if _HAS_UV:
@@ -98,7 +105,7 @@ def task_test_cov(args: list[str]) -> int:
 
 
 def task_build(args: list[str]) -> int:
-    return _run([*_build_cmd(), *args])
+    return _run_all([[*_build_cmd(), *args], _environment_script("smoke_package.py")])
 
 
 def task_build_exe(args: list[str]) -> int:
@@ -113,16 +120,35 @@ def task_check_skills(args: list[str]) -> int:
     return _run(_script("check_skills.py", *args))
 
 
+def task_check_architecture(args: list[str]) -> int:
+    return _run(_script("check_architecture.py", *args))
+
+
+def task_check_docs(args: list[str]) -> int:
+    return _run(_script("check_docs.py", *args))
+
+
+def task_generate_feature(args: list[str]) -> int:
+    return _run(_script("generate_feature.py", *args))
+
+
+def task_smoke_package(args: list[str]) -> int:
+    return _run(_environment_script("smoke_package.py", *args))
+
+
 def task_validate(args: list[str]) -> int:
     """Porta unica de qualidade: roda tudo, na ordem, parando no primeiro erro."""
     return _run_all(
         [
             _script("check_skills.py"),
+            _script("check_architecture.py"),
+            _script("check_docs.py"),
             _tool("ruff", "format", "--check"),
             _tool("ruff", "check"),
             _tool("mypy"),
             _tool("pytest"),
             _build_cmd(),
+            _environment_script("smoke_package.py"),
         ]
     )
 
@@ -140,7 +166,14 @@ TASKS = {
     "build-exe": (task_build_exe, "Gera o executavel standalone do SO atual."),
     "sync-skills": (task_sync_skills, "Sincroniza as skills para .claude e .agents."),
     "check-skills": (task_check_skills, "Verifica se as copias das skills batem."),
-    "validate": (task_validate, "Roda tudo: skills, format, lint, types, testes, build."),
+    "check-architecture": (
+        task_check_architecture,
+        "Verifica as fronteiras entre app, features e shared.",
+    ),
+    "check-docs": (task_check_docs, "Valida links e comandos da documentação."),
+    "generate-feature": (task_generate_feature, "Gera o esqueleto de uma feature."),
+    "smoke-package": (task_smoke_package, "Instala e testa o wheel em ambiente limpo."),
+    "validate": (task_validate, "Roda qualidade, testes, build e smoke do wheel."),
 }
 
 

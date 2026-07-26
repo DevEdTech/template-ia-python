@@ -15,6 +15,7 @@ Usar pytest, configurado em `pyproject.toml`. A suíte padrão deve executar em 
 - **CLI**: parsing, saída, código de retorno e persistência.
 - **GUI sem display**: entrada da aplicação, controladores e tratamento de indisponibilidade usando janelas ou dependências falsas.
 - **GUI com display**: reservar para poucos testes de integração quando houver infraestrutura própria e valor comprovado.
+- **Contrato local**: setup transacional, gerador de feature, documentação, arquitetura e wheel instalado.
 
 ## Localização
 
@@ -40,7 +41,7 @@ python scripts/dev.py test -k nome_do_teste -v
 
 ## Isolamento de I/O
 
-Testes não devem tocar dados reais. Usar `tmp_path` e `monkeypatch` para redirecionar persistência e ambiente. A fixture `isolated_data_dir` já aponta os dados da feature de exemplo para uma pasta temporária.
+Testes não devem tocar dados reais. Usar `tmp_path` e `monkeypatch` para redirecionar persistência e ambiente. A fixture `isolated_data_dir` já aponta os dados das features para uma pasta temporária.
 
 ## Testes de GUI
 
@@ -68,6 +69,8 @@ def test_gui_inicia_loop() -> None:
 ```
 
 Isso testa o contrato da entrada gráfica sem depender de display, resolução ou sistema operacional.
+
+Controladores de feature, como `NotesController`, são testados sem widgets reais. O setup também é exercitado em uma cópia temporária: os testes cobrem dry-run, repetição idempotente, escolha real de interface, rollback, renomeação e remoção da demonstração. A persistência cobre migração, backup, lock e conflito de revisão. A validação final instala o wheel em um ambiente virtual temporário.
 
 ## O que não testar
 

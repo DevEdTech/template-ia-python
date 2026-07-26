@@ -1,7 +1,10 @@
 from __future__ import annotations
 
+from collections.abc import Callable, Sequence
 from typing import TYPE_CHECKING
 
+from app_template.features.notes.model import Note
+from app_template.features.notes.services import NoteStorageError
 from app_template.features.notes.use_cases import add_note, list_notes, remove_note
 
 if TYPE_CHECKING:
@@ -9,13 +12,38 @@ if TYPE_CHECKING:
     from tkinter import ttk
 
 
+class NotesController:
+    """Orquestra ações da GUI sem depender de widgets ou de um display real."""
+
+    def __init__(
+        self,
+        list_fn: Callable[[], list[Note]] = list_notes,
+        add_fn: Callable[[str], Note] = add_note,
+        remove_fn: Callable[[str], bool] = remove_note,
+    ) -> None:
+        self._list = list_fn
+        self._add = add_fn
+        self._remove = remove_fn
+
+    def get_notes(self) -> list[Note]:
+        return self._list()
+
+    def add(self, title: str) -> list[Note]:
+        self._add(title)
+        return self._list()
+
+    def remove(self, note_ids: Sequence[str]) -> list[Note]:
+        for note_id in note_ids:
+            self._remove(note_id)
+        return self._list()
+
+
 def create_notes_panel(parent: tk.Misc) -> ttk.Frame:
     import tkinter as tk
     from tkinter import messagebox, ttk
 
+    controller = NotesController()
     panel = ttk.Frame(parent, padding=16)
-
-    # Frame para adicionar nota
     add_frame = ttk.Frame(panel)
     add_frame.pack(fill="x", pady=(0, 16))
 
@@ -24,16 +52,13 @@ def create_notes_panel(parent: tk.Misc) -> ttk.Frame:
     entry = ttk.Entry(add_frame, textvariable=title_var)
     entry.pack(side="left", fill="x", expand=True, padx=(0, 8))
 
-    # Treeview para listar notas
     list_frame = ttk.Frame(panel)
     list_frame.pack(fill="both", expand=True)
-
     columns = ("id", "title", "date")
     tree = ttk.Treeview(list_frame, columns=columns, show="headings")
     tree.heading("id", text="ID")
     tree.heading("title", text="Título")
     tree.heading("date", text="Data")
-
     tree.column("id", width=250)
     tree.column("title", width=300)
     tree.column("date", width=150)
@@ -43,45 +68,42 @@ def create_notes_panel(parent: tk.Misc) -> ttk.Frame:
     tree.pack(side="left", fill="both", expand=True)
     scrollbar.pack(side="right", fill="y")
 
-    def refresh_list() -> None:
+    def render_notes(notes: Sequence[Note]) -> None:
         for item in tree.get_children():
             tree.delete(item)
-        notes = list_notes()
-        if not notes:
-            # Não é possível adicionar placeholder no meio do treeview de forma simples no ttk,
-            # apenas deixamos vazio
-            pass
-        else:
-            for n in notes:
-                tree.insert("", "end", values=(n.id, n.title, n.created_at))
+        for note in notes:
+            tree.insert("", "end", values=(note.id, note.title, note.created_at))
+
+    def refresh_list() -> None:
+        try:
+            render_notes(controller.get_notes())
+        except NoteStorageError as exc:
+            messagebox.showerror("Erro de armazenamento", str(exc))
 
     def on_add() -> None:
-        title = title_var.get()
         try:
-            add_note(title)
+            notes = controller.add(title_var.get())
             title_var.set("")
-            refresh_list()
-        except ValueError as e:
-            messagebox.showerror("Erro de Validação", str(e))
+            render_notes(notes)
+        except ValueError as exc:
+            messagebox.showerror("Erro de validação", str(exc))
+        except NoteStorageError as exc:
+            messagebox.showerror("Erro de armazenamento", str(exc))
 
     def on_remove() -> None:
         selected = tree.selection()
         if not selected:
             messagebox.showwarning("Aviso", "Selecione uma nota para remover.")
             return
-
-        for item in selected:
-            note_id = tree.item(item, "values")[0]
-            remove_note(note_id)
-
-        refresh_list()
+        note_ids = [str(tree.item(item, "values")[0]) for item in selected]
+        try:
+            render_notes(controller.remove(note_ids))
+        except NoteStorageError as exc:
+            messagebox.showerror("Erro de armazenamento", str(exc))
 
     ttk.Button(add_frame, text="Adicionar", command=on_add).pack(side="left")
-
     btn_frame = ttk.Frame(panel)
     btn_frame.pack(fill="x", pady=(16, 0))
-    ttk.Button(btn_frame, text="Remover Selecionada", command=on_remove).pack(side="right")
-
+    ttk.Button(btn_frame, text="Remover selecionada", command=on_remove).pack(side="right")
     refresh_list()
-
     return panel

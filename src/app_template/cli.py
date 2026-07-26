@@ -13,8 +13,7 @@ from __future__ import annotations
 import argparse
 from collections.abc import Callable, Sequence
 
-from app_template import __version__
-from app_template.features.example import register_example_commands
+from app_template import APP_DISPLAY_NAME, __version__
 from app_template.features.notes import register_notes_commands
 
 # Cada subcomando registra um handler: recebe os args e retorna o codigo de saida.
@@ -25,7 +24,7 @@ def build_parser() -> argparse.ArgumentParser:
     """Constroi o parser raiz e registra os comandos de cada feature."""
     parser = argparse.ArgumentParser(
         prog="app-template",
-        description="Aplicacao de exemplo do template Python.",
+        description=APP_DISPLAY_NAME,
     )
     parser.add_argument(
         "--version",
@@ -34,10 +33,9 @@ def build_parser() -> argparse.ArgumentParser:
     )
 
     subparsers = parser.add_subparsers(dest="command", metavar="<comando>")
-    subparsers.required = True
+    subparsers.required = False
 
     # Cada feature registra seus proprios subcomandos. A camada app so orquestra.
-    register_example_commands(subparsers)
     register_notes_commands(subparsers)
 
     return parser
@@ -48,5 +46,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
     # Cada subcomando define `args.handler` (ver commands.py de cada feature).
-    handler: Handler = args.handler
+    handler: Handler | None = getattr(args, "handler", None)
+    if handler is None:
+        parser.print_help()
+        return 0
     return handler(args)

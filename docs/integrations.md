@@ -33,7 +33,7 @@ Exemplo em `.env.example`:
 ## Portabilidade (Windows, macOS, Linux)
 
 - Use `pathlib.Path` para caminhos; evite separadores fixos (`/` ou `\`).
-- Para diretórios de dados/config do usuário, resolva o caminho por SO (veja `services.py` da feature de exemplo) ou considere a lib `platformdirs` (dependência opcional, via ADR).
+- Para diretórios de dados/config do usuário, resolva o caminho por SO (veja `services.py` da feature `notes`) ou considere a lib `platformdirs` (dependência opcional, via ADR).
 - Evite comandos de shell específicos de um SO. Prefira APIs da stdlib (`subprocess` com lista de argumentos, `shutil`).
 
 ## Tratamento de erros

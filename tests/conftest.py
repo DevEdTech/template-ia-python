@@ -14,7 +14,7 @@ import pytest
 
 @pytest.fixture
 def isolated_data_dir(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[Path]:
-    """Isola a persistencia da feature de exemplo em um diretorio temporario.
+    """Isola a persistência das features em um diretório temporário.
 
     Aponta `APP_TEMPLATE_DATA_DIR` para um `tmp_path`, garantindo que os testes
     nunca toquem nos dados reais do usuario e sejam independentes entre si.

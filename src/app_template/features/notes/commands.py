@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 from typing import Any
 
+from app_template.features.notes.services import NoteStorageError
 from app_template.features.notes.use_cases import add_note, list_notes, remove_note
 from app_template.logger import get_logger
 
@@ -14,13 +15,17 @@ def _handle_add(args: argparse.Namespace) -> int:
         note = add_note(args.title)
         print(f"Nota adicionada com sucesso! (ID: {note.id})")
         return 0
-    except ValueError as e:
+    except (ValueError, NoteStorageError) as e:
         logger.error(f"Erro: {e}")
         return 1
 
 
 def _handle_list(_args: argparse.Namespace) -> int:
-    notes = list_notes()
+    try:
+        notes = list_notes()
+    except NoteStorageError as exc:
+        logger.error(f"Erro: {exc}")
+        return 1
     if not notes:
         print("Nenhuma nota encontrada.")
         return 0
@@ -33,7 +38,11 @@ def _handle_list(_args: argparse.Namespace) -> int:
 
 
 def _handle_remove(args: argparse.Namespace) -> int:
-    success = remove_note(args.id)
+    try:
+        success = remove_note(args.id)
+    except NoteStorageError as exc:
+        logger.error(f"Erro: {exc}")
+        return 1
     if success:
         print(f"Nota {args.id} removida com sucesso!")
         return 0

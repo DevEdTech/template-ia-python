@@ -9,7 +9,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Protocol
 
-from app_template.features.example import create_example_panel
+from app_template import APP_DISPLAY_NAME
 from app_template.features.notes import create_notes_panel
 from app_template.logger import get_logger
 
@@ -46,9 +46,8 @@ def build_window() -> GuiWindow:
             "não foi possível acessar um ambiente gráfico nesta sessão."
         ) from exc
 
-    window.title("Aplicação de exemplo")
+    window.title(APP_DISPLAY_NAME)
     window.minsize(360, 220)
-    create_example_panel(window).pack(fill="both", expand=True)
     create_notes_panel(window).pack(fill="both", expand=True)
     return window
 

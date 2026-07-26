@@ -31,7 +31,7 @@ def test_notes_add_and_list(
     # Add error
     args_add_err = parser.parse_args(["notes", "add", "  "])
     assert args_add_err.handler(args_add_err) == 1
-    assert "não pode ser vazio" in caplog.text
+    assert "obrigatório" in caplog.text
 
 
 def test_notes_remove(
@@ -58,3 +58,16 @@ def test_notes_remove(
     args_remove_err = parser.parse_args(["notes", "remove", "123"])
     assert args_remove_err.handler(args_remove_err) == 1
     assert "não encontrada" in caplog.text
+
+
+def test_notes_list_reporta_arquivo_corrompido(
+    caplog: pytest.LogCaptureFixture, isolated_data_dir: Any
+) -> None:
+    (isolated_data_dir / "notes.json").write_text("{corrompido", encoding="utf-8")
+    parser = argparse.ArgumentParser()
+    subparsers = parser.add_subparsers(dest="action")
+    register_notes_commands(subparsers)
+
+    args = parser.parse_args(["notes", "list"])
+    assert args.handler(args) == 1
+    assert "corrompido" in caplog.text

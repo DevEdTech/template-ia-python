@@ -14,7 +14,7 @@ O template entrega pacote Python e executáveis standalone para CLI ou GUI.
 python scripts/dev.py build
 ```
 
-O build gera wheel e sdist em `dist/`. O pacote contém as entradas `app-template` e `app-template-gui`; o usuário executa apenas a interface desejada.
+O build gera wheel e sdist em `dist/` e, em seguida, instala o wheel mais recente em um ambiente virtual limpo, sem consultar índices ou instalar dependências. A importação e a entrada CLI, quando presente, são exercitadas. As entradas disponíveis refletem a escolha `cli`, `gui` ou `both` feita no setup.
 
 ## Executável CLI
 
@@ -52,4 +52,4 @@ PyInstaller gera artefatos para o sistema e arquitetura atuais. Produzir um exec
 
 ## Versão e reprodutibilidade
 
-A versão vem de `pyproject.toml` e `src/app_template/__init__.py`. Manter ambas sincronizadas. Versionar `uv.lock`, ou outro lockfile adotado, para builds reproduzíveis.
+A versão tem uma única fonte em `src/app_template/__init__.py`; o Hatch lê esse valor por `tool.hatch.version`. Versionar `uv.lock`, ou outro lockfile adotado, para builds reproduzíveis.
