@@ -20,6 +20,7 @@ Cross-platform (Windows, macOS, Linux): usa apenas a stdlib.
 
 from __future__ import annotations
 
+import argparse
 import re
 import shutil
 import subprocess
@@ -162,29 +163,21 @@ def explain_usage_and_exit() -> int:
     log("Este script personaliza um novo projeto e precisa de um terminal")
     log("interativo (TTY) para as perguntas. Rode em um terminal:\n")
     log("  python scripts/setup_project.py\n")
-    log("Ele pergunta: nome, descricao, remocao da feature de exemplo,")
-    log("inicializacao da documentacao e sincronizacao das skills.\n")
+    log("Ou forneca argumentos via linha de comando para rodar automaticamente:")
+    log('  python scripts/setup_project.py --name "meu-app" --description "Meu app" --remove-example\n')
     log("Para apenas sincronizar as skills:\n")
     log("  python scripts/dev.py sync-skills")
     return 0
 
 
-def main() -> int:
-    if not sys.stdin.isatty():
-        return explain_usage_and_exit()
-
-    log("Configuracao do novo projeto a partir do template.\n")
-
-    name_raw = input("Nome do projeto (ex.: meu-app): ").strip()
-    project_name = name_raw or PLACEHOLDER_DIST
-    package_name = slugify_package(project_name)
-    log(f'  -> pacote importavel: "{package_name}"\n')
-
-    description = input("Descricao do projeto: ").strip()
-    remove_example = is_yes(input("Remover feature de exemplo? (s/N): "), False)
-    do_init_docs = is_yes(input("Reiniciar tasks.md? (s/N): "), False)
-    do_sync = is_yes(input("Sincronizar skills? (S/n): "), True)
-
+def apply_changes(
+    project_name: str,
+    package_name: str,
+    description: str,
+    remove_example: bool,
+    do_init_docs: bool,
+    do_sync: bool,
+) -> None:
     log("\nAplicando alteracoes...\n")
 
     # 1) Renomeia o diretorio do pacote antes de reescrever os arquivos.
@@ -207,6 +200,51 @@ def main() -> int:
     log("  2. Valide o projeto:         python scripts/dev.py validate")
     log("  3. Rode a CLI:               uv run app-template --help")
     log("  4. Rode a GUI:               uv run app-template-gui")
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Personaliza o template para um novo projeto.")
+    parser.add_argument("--name", type=str, help="Nome do projeto (ex.: meu-app)")
+    parser.add_argument("--description", type=str, help="Descricao do projeto")
+    parser.add_argument("--remove-example", action="store_true", help="Remove a feature de exemplo")
+    parser.add_argument("--init-docs", action="store_true", help="Reinicia tasks.md")
+    parser.add_argument("--no-sync-skills", action="store_true", help="Pula a sincronizacao de skills")
+    
+    args, _ = parser.parse_known_args()
+    has_args = any([args.name, args.description, args.remove_example, args.init_docs, args.no_sync_skills])
+    
+    if has_args:
+        log("Configuracao via argumentos de linha de comando detectada.\n")
+        project_name = args.name.strip() if args.name else PLACEHOLDER_DIST
+        package_name = slugify_package(project_name)
+        log(f'  -> pacote importavel: "{package_name}"\n')
+        
+        apply_changes(
+            project_name,
+            package_name,
+            args.description.strip() if args.description else "",
+            args.remove_example,
+            args.init_docs,
+            not args.no_sync_skills
+        )
+        return 0
+
+    if not sys.stdin.isatty():
+        return explain_usage_and_exit()
+
+    log("Configuracao do novo projeto a partir do template.\n")
+
+    name_raw = input("Nome do projeto (ex.: meu-app): ").strip()
+    project_name = name_raw or PLACEHOLDER_DIST
+    package_name = slugify_package(project_name)
+    log(f'  -> pacote importavel: "{package_name}"\n')
+
+    description = input("Descricao do projeto: ").strip()
+    remove_example = is_yes(input("Remover feature de exemplo? (s/N): "), False)
+    do_init_docs = is_yes(input("Reiniciar tasks.md? (s/N): "), False)
+    do_sync = is_yes(input("Sincronizar skills? (S/n): "), True)
+
+    apply_changes(project_name, package_name, description, remove_example, do_init_docs, do_sync)
     return 0
 
 
