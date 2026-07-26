@@ -128,6 +128,19 @@ def remove_example_feature() -> None:
     if tests_feature.exists():
         shutil.rmtree(tests_feature)
         log(f"Testes de exemplo removidos: {tests_feature.relative_to(PROJECT_ROOT)}")
+
+    notes_feature = PROJECT_ROOT / "src" / "app_template" / "features" / "notes"
+    if not notes_feature.exists():
+        candidates = list((PROJECT_ROOT / "src").glob("*/features/notes"))
+        if candidates:
+            notes_feature = candidates[0]
+
+    if notes_feature.exists():
+        shutil.rmtree(notes_feature)
+
+    notes_tests = PROJECT_ROOT / "tests" / "features" / "notes"
+    if notes_tests.exists():
+        shutil.rmtree(notes_tests)
     log("Atencao: ajuste cli.py, gui.py e o __init__ de features para nao importar o exemplo.")
 
 
@@ -164,7 +177,10 @@ def explain_usage_and_exit() -> int:
     log("interativo (TTY) para as perguntas. Rode em um terminal:\n")
     log("  python scripts/setup_project.py\n")
     log("Ou forneca argumentos via linha de comando para rodar automaticamente:")
-    log('  python scripts/setup_project.py --name "meu-app" --description "Meu app" --remove-example\n')
+    log(
+        '  python scripts/setup_project.py --name "meu-app" '
+        '--description "Meu app" --remove-example\n'
+    )
     log("Para apenas sincronizar as skills:\n")
     log("  python scripts/dev.py sync-skills")
     return 0
@@ -208,24 +224,28 @@ def main() -> int:
     parser.add_argument("--description", type=str, help="Descricao do projeto")
     parser.add_argument("--remove-example", action="store_true", help="Remove a feature de exemplo")
     parser.add_argument("--init-docs", action="store_true", help="Reinicia tasks.md")
-    parser.add_argument("--no-sync-skills", action="store_true", help="Pula a sincronizacao de skills")
-    
+    parser.add_argument(
+        "--no-sync-skills", action="store_true", help="Pula a sincronizacao de skills"
+    )
+
     args, _ = parser.parse_known_args()
-    has_args = any([args.name, args.description, args.remove_example, args.init_docs, args.no_sync_skills])
-    
+    has_args = any(
+        [args.name, args.description, args.remove_example, args.init_docs, args.no_sync_skills]
+    )
+
     if has_args:
         log("Configuracao via argumentos de linha de comando detectada.\n")
         project_name = args.name.strip() if args.name else PLACEHOLDER_DIST
         package_name = slugify_package(project_name)
         log(f'  -> pacote importavel: "{package_name}"\n')
-        
+
         apply_changes(
             project_name,
             package_name,
             args.description.strip() if args.description else "",
             args.remove_example,
             args.init_docs,
-            not args.no_sync_skills
+            not args.no_sync_skills,
         )
         return 0
 

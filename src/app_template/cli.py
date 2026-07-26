@@ -15,6 +15,7 @@ from collections.abc import Callable, Sequence
 
 from app_template import __version__
 from app_template.features.example import register_example_commands
+from app_template.features.notes import register_notes_commands
 
 # Cada subcomando registra um handler: recebe os args e retorna o codigo de saida.
 Handler = Callable[[argparse.Namespace], int]
@@ -37,6 +38,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     # Cada feature registra seus proprios subcomandos. A camada app so orquestra.
     register_example_commands(subparsers)
+    register_notes_commands(subparsers)
 
     return parser
 

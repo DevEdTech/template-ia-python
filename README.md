@@ -58,28 +58,25 @@ python scripts/setup_project.py
 
 O `setup_project.py` renomeia o pacote, personaliza nome e descrição, remove a feature de exemplo (opcional) e sincroniza as skills dos agentes.
 
-## Prompts Iniciais Recomendados (Copie e Cole)
+## Prompts Iniciais (Copie, Preencha e Cole no Agente)
 
-Para ter o melhor fluxo de trabalho com seu agente de IA, utilize estes prompts iniciais em ordem:
+Escolha o cenário que se encaixa no seu momento e cole no seu agente de IA.
 
-**1. Inicialização do Projeto:**
+**Cenário A — "Tenho uma ideia mas não sei o escopo"** *(fluxo completo)*
 ```text
-Rode o comando `uv sync` seguido de `python scripts/setup_project.py`. Preencha as informações do novo projeto respondendo às perguntas do script interativo, se houver, ou me pergunte o que colocar.
+Estou começando um projeto novo. Faça o seguinte:
+1. Rode `uv sync` e depois `python scripts/setup_project.py --name="[meu-app]" --description="[descreva aqui]" --remove-example --init-docs`.
+2. Depois, use a skill plan-app para conduzir uma entrevista curta comigo e definirmos juntos o escopo do produto.
 ```
 
-**2. Concepção do Produto (se a ideia for nova):**
+**Cenário B — "Já sei o que quero, planeje a feature"**
 ```text
-Use a skill `plan-app` para conduzir uma entrevista curta comigo e definirmos o escopo deste produto. Ao final, gere o PRD e atualize as decisões de arquitetura.
+O produto já está definido em docs/prd.md. Use a skill plan-feature para planejar a funcionalidade: [descreva a funcionalidade aqui]. Quero revisar o plano antes da implementação.
 ```
 
-**3. Planejamento de Funcionalidade:**
+**Cenário C — "O plano foi aprovado, implemente"**
 ```text
-Use a skill `plan-feature` para planejar a funcionalidade: [Descreva a funcionalidade aqui]. Quero revisar o plano antes da implementação.
-```
-
-**4. Implementação e Validação:**
-```text
-Use a skill `implement-feature` para executar o plano aprovado. Lembre-se de seguir a arquitetura estabelecida e garantir que `python scripts/dev.py validate` passe limpo ao concluir.
+O plano foi aprovado. Use a skill implement-feature para executar. Garanta que `python scripts/dev.py validate` passe limpo ao concluir.
 ```
 
 ## Execução

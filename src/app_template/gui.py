@@ -11,6 +11,7 @@ from collections.abc import Callable
 from typing import Protocol
 
 from app_template.features.example import create_example_panel
+from app_template.features.notes import create_notes_panel
 
 
 class GuiWindow(Protocol):
@@ -46,6 +47,7 @@ def build_window() -> GuiWindow:
     window.title("Aplicação de exemplo")
     window.minsize(360, 220)
     create_example_panel(window).pack(fill="both", expand=True)
+    create_notes_panel(window).pack(fill="both", expand=True)
     return window
 
 
