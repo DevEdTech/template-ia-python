@@ -35,6 +35,39 @@ Use a skill plan-app. Quero criar uma ferramenta CLI que monitore o uso de disco
 
 ---
 
+## save-legacy-project
+
+**Propósito**: Diagnosticar um projeto legado e produzir um plano aprovado de reestruturação, sem mudar o comportamento.
+
+**Prompt de exemplo**:
+```text
+Use a skill save-legacy-project. Herdei um projeto com quinze scripts soltos na raiz, sem testes nem documentação, que lê planilhas e envia relatórios por e-mail.
+```
+
+**Bom resultado**:
+- Inspecionou o repositório e rodou os comandos existentes antes de propor qualquer mudança
+- Registrou a linha de base, distinguindo o que já falhava do que poderia regredir
+- Apresentou diagnóstico curto: o que o projeto faz, como está organizado e os maiores problemas
+- Mapeou cada capacidade para uma feature e deu destino a todos os arquivos, sem sobras
+- Separou, por módulo, o que é regra pura, I/O, orquestração e interface
+- Propôs incrementos pequenos e reversíveis, começando pela rede de segurança
+- Pediu aprovação explícita antes de mover qualquer arquivo
+- Escreveu testes de caracterização antes de mover código descoberto
+- Usou `git mv`, com um commit por incremento
+- Marcou como dúvida o que o código não permitia concluir, em vez de supor
+
+**Sinais de alerta**:
+- Começou a mover arquivos antes da aprovação do plano
+- Reescreveu regras de negócio ou corrigiu bugs junto com a movimentação
+- Deixou arquivos sem destino definido no plano
+- Misturou vários incrementos em um único commit
+- Adicionou dependências ou trocou o toolkit gráfico durante o resgate
+- Inventou objetivos de produto no `docs/prd.md` em vez de reconstruir o comportamento existente
+- Tratou uma falha que já existia na linha de base como regressão, ou o contrário
+- Aproveitou o resgate para incluir features novas
+
+---
+
 ## plan-feature
 
 **Propósito**: Transformar uma solicitação em um plano claro antes de escrever código.
