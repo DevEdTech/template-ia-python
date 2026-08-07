@@ -16,21 +16,23 @@ concurrency:
 
 jobs:
   validate:
-    name: validate (${{ matrix.os }}, py${{ env.PYTHON_VERSION }})
+    name: validate (${{ matrix.os }}, py${{ matrix.python-version }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        # Uma única versão de Python — a mesma do `requires-python` e do
-        # `.python-version`, para que o testado e o prometido não divirjam.
         # A matriz varia só o sistema: o template promete comportamento
         # idêntico nos dois, e há código sensível a SO (caminhos de dados,
         # fsync de diretório, locks de arquivo).
         os: [ubuntu-latest, windows-latest]
+        # Uma única versão — a mesma do `requires-python` e do
+        # `.python-version`, para que o testado e o prometido não divirjam.
+        # Declarada na matriz (e não em `env`) porque o contexto `env` não
+        # existe em `jobs.<id>.name`, e ali o valor precisa aparecer.
+        python-version: ["3.13"]
     env:
-      PYTHON_VERSION: "3.13"
       # Tem precedência sobre o .python-version; mantidos iguais de propósito.
-      UV_PYTHON: "3.13"
+      UV_PYTHON: ${{ matrix.python-version }}
     steps:
       - uses: actions/checkout@v4
 

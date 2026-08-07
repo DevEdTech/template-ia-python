@@ -43,3 +43,11 @@ repos:
         language: system
         pass_filenames: false
         types: [python]
+      # Só roda ao tocar em workflow. É a única rede de proteção possível: um
+      # workflow inválido não falha no CI, ele não chega a iniciar.
+      - id: check-workflows
+        name: actionlint
+        entry: python scripts/dev.py check-workflows
+        language: system
+        pass_filenames: false
+        files: ^\.github/workflows/

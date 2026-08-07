@@ -137,6 +137,31 @@ def task_smoke_package(args: list[str]) -> int:
     return _run(_environment_script("smoke_package.py", *args))
 
 
+def task_check_workflows(args: list[str]) -> int:
+    """Valida os workflows do GitHub Actions com o actionlint.
+
+    Um workflow invalido nao falha: ele simplesmente nao roda. Nao adianta
+    conferir isso dentro do proprio CI, porque um `ci.yml` quebrado nao chega a
+    iniciar — a verificacao precisa acontecer antes do push, aqui.
+    """
+    workflows = PROJECT_ROOT / ".github" / "workflows"
+    if not workflows.is_dir():
+        print("Nenhum workflow para verificar.")
+        return 0
+    if not _HAS_UV:
+        print(
+            "A verificacao de workflows requer o uv (https://docs.astral.sh/uv/).",
+            file=sys.stderr,
+        )
+        return 1
+    files = sorted(str(path) for path in workflows.glob("*.y*ml"))
+    if not files:
+        print("Nenhum workflow para verificar.")
+        return 0
+    # `uvx` roda a ferramenta de forma efemera, sem entrar nas dependencias.
+    return _run(["uvx", "--from", "actionlint-py", "actionlint", *files, *args])
+
+
 def task_audit(args: list[str]) -> int:
     """Confere as dependencias bloqueadas contra o banco de vulnerabilidades.
 
@@ -215,6 +240,7 @@ TASKS = {
     "check-docs": (task_check_docs, "Valida links e comandos da documentação."),
     "generate-feature": (task_generate_feature, "Gera o esqueleto de uma feature."),
     "smoke-package": (task_smoke_package, "Instala e testa o wheel em ambiente limpo."),
+    "check-workflows": (task_check_workflows, "Valida os workflows do GitHub Actions."),
     "audit": (task_audit, "Audita as dependencias em busca de vulnerabilidades."),
     "validate": (task_validate, "Roda qualidade, testes, build e smoke do wheel."),
 }

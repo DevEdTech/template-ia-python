@@ -33,7 +33,12 @@ Dois workflows rodam no GitHub Actions:
 | `ci`        | push, Pull Request                  | `validate` em Python 3.13 × Linux/Windows, e `pre-commit`               |
 | `security`  | push, Pull Request, semanalmente    | `pip-audit` sobre o `uv.lock` e `gitleaks` sobre o histórico            |
 
-O `validate` é a porta local e permanece **offline**. A auditoria de dependências depende de rede, então fica fora dele e é executada sob demanda com `python scripts/dev.py audit`.
+O `validate` é a porta local e permanece **offline**. Duas verificações dependem de rede e por isso ficam fora dele:
+
+- `python scripts/dev.py audit` — vulnerabilidades nas dependências.
+- `python scripts/dev.py check-workflows` — validade dos workflows do GitHub Actions.
+
+A segunda roda automaticamente no pre-commit quando você toca em `.github/workflows/`. Ela precisa acontecer **antes do push**: um workflow inválido não falha no CI, ele simplesmente não chega a iniciar — e um `ci.yml` quebrado não consegue se auto-verificar.
 
 ## Dependências e segurança
 
