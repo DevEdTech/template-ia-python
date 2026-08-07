@@ -28,7 +28,7 @@ Indicado para:
 
 ## Pré-requisitos
 
-- Python 3.11 ou superior (o arquivo `.python-version` indica a versão recomendada)
+- Python 3.13 (a mesma versão em `.python-version`, no `requires-python` e no CI)
 - [uv](https://docs.astral.sh/uv/) (recomendado) — ou `pip` + `venv` como alternativa
 - git
 - Um agente de código (ex.: Claude Code)
@@ -113,7 +113,7 @@ O `validate` funciona sem rede e vale para um clone recém-feito.
 
 ### Verificação automática
 
-O GitHub Actions repete o `validate` a cada push e Pull Request, em **Python 3.11, 3.12 e 3.13**, no **Linux e no Windows** — as pontas do que o template promete suportar. Um workflow separado audita as dependências (`pip-audit` sobre o `uv.lock`) e varre o histórico em busca de segredos (`gitleaks`), também uma vez por semana para que uma vulnerabilidade nova apareça sem depender de um push.
+O GitHub Actions repete o `validate` a cada push e Pull Request, em **Python 3.13**, no **Linux e no Windows** — os dois sistemas em que o template promete comportamento idêntico. Um workflow separado audita as dependências (`pip-audit` sobre o `uv.lock`) e varre o histórico em busca de segredos (`gitleaks`), também uma vez por semana para que uma vulnerabilidade nova apareça sem depender de um push.
 
 Localmente, instale os hooks para receber o mesmo retorno antes do commit:
 

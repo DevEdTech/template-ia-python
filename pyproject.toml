@@ -3,7 +3,7 @@ name = "python-project-template"
 dynamic = ["version"]
 description = "Template de aplicações Python com CLI ou GUI, qualidade e build multiplataforma prontos."
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.13"
 license = { text = "Proprietary" }
 authors = [{ name = "Sua organizacao" }]
 keywords = ["template", "cli", "gui", "python"]
@@ -99,7 +99,7 @@ indent-style = "space"
 # mypy: checagem de tipos em modo estrito.
 # ---------------------------------------------------------------------------
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.13"
 strict = true
 warn_unused_configs = true
 warn_redundant_casts = true

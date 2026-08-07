@@ -16,18 +16,21 @@ concurrency:
 
 jobs:
   validate:
-    name: validate (${{ matrix.os }}, py${{ matrix.python-version }})
+    name: validate (${{ matrix.os }}, py${{ env.PYTHON_VERSION }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        # Cobre as pontas do `requires-python` declarado no pyproject.toml e os
-        # dois sistemas em que o template promete funcionar de forma idêntica.
+        # Uma única versão de Python — a mesma do `requires-python` e do
+        # `.python-version`, para que o testado e o prometido não divirjam.
+        # A matriz varia só o sistema: o template promete comportamento
+        # idêntico nos dois, e há código sensível a SO (caminhos de dados,
+        # fsync de diretório, locks de arquivo).
         os: [ubuntu-latest, windows-latest]
-        python-version: ["3.11", "3.12", "3.13"]
     env:
-      # Tem precedência sobre o .python-version e é o que varia a matriz.
-      UV_PYTHON: ${{ matrix.python-version }}
+      PYTHON_VERSION: "3.13"
+      # Tem precedência sobre o .python-version; mantidos iguais de propósito.
+      UV_PYTHON: "3.13"
     steps:
       - uses: actions/checkout@v4
 

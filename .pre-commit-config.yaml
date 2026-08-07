@@ -7,13 +7,6 @@ repos:
       - id: check-yaml
       - id: check-added-large-files
 
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.9.0
-    hooks:
-      - id: ruff
-        args: [ --fix ]
-      - id: ruff-format
-
   # Impede que um segredo chegue ao commit. A regra "nunca faça commit de
   # segredos" do AGENTS.md deixa de depender só de disciplina.
   - repo: https://github.com/gitleaks/gitleaks
@@ -21,10 +14,23 @@ repos:
     hooks:
       - id: gitleaks
 
-  # mypy e pytest rodam localmente pelo `dev.py`, para que o hook exercite
-  # exatamente o mesmo gate que o CI — sem duplicar configuração.
+  # Todas as ferramentas Python passam pelo `dev.py`, usando a versão do
+  # uv.lock. Um hook com `rev` própria fixaria uma segunda versão do ruff, que
+  # divergiria da do projeto e reprovaria código que o `validate` aprova.
   - repo: local
     hooks:
+      - id: lint
+        name: ruff (lint)
+        entry: python scripts/dev.py lint-fix
+        language: system
+        pass_filenames: false
+        types: [python]
+      - id: format
+        name: ruff (formatação)
+        entry: python scripts/dev.py format
+        language: system
+        pass_filenames: false
+        types: [python]
       - id: typecheck
         name: mypy (modo estrito)
         entry: python scripts/dev.py typecheck

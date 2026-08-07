@@ -13,7 +13,7 @@ python scripts/dev.py validate
 ```
 
 4. Abra o Pull Request descrevendo o que mudou e por quê.
-5. Aguarde o CI: ele repete o `validate` em Python 3.11/3.12/3.13, no Linux e no Windows, e roda auditoria de dependências e varredura de segredos.
+5. Aguarde o CI: ele repete o `validate` em Python 3.13, no Linux e no Windows, e roda auditoria de dependências e varredura de segredos.
 6. Aguarde a revisão e ajuste conforme os comentários.
 
 Para receber o mesmo retorno antes do commit, instale os hooks uma vez:

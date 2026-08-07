@@ -30,7 +30,7 @@ Dois workflows rodam no GitHub Actions:
 
 | Workflow    | Quando                              | O que faz                                                             |
 | ----------- | ----------------------------------- | --------------------------------------------------------------------- |
-| `ci`        | push, Pull Request                  | `validate` em Python 3.11/3.12/3.13 × Linux/Windows, e `pre-commit`     |
+| `ci`        | push, Pull Request                  | `validate` em Python 3.13 × Linux/Windows, e `pre-commit`               |
 | `security`  | push, Pull Request, semanalmente    | `pip-audit` sobre o `uv.lock` e `gitleaks` sobre o histórico            |
 
 O `validate` é a porta local e permanece **offline**. A auditoria de dependências depende de rede, então fica fora dele e é executada sob demanda com `python scripts/dev.py audit`.
