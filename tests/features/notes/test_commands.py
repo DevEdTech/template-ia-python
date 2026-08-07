@@ -5,8 +5,29 @@ from typing import Any
 
 import pytest
 
+from app_template.cli import main
 from app_template.features.notes.commands import register_notes_commands
 from app_template.features.notes.use_cases import list_notes
+
+
+def test_cli_despacha_para_a_feature(
+    capsys: pytest.CaptureFixture[str], isolated_data_dir: Any
+) -> None:
+    """A composição precisa encontrar e executar o comando registrado aqui."""
+    assert main(["notes", "add", "Nota via CLI"]) == 0
+    capsys.readouterr()
+
+    assert main(["notes", "list"]) == 0
+    out, _ = capsys.readouterr()
+    assert "Nota via CLI" in out
+
+
+def test_cli_propaga_codigo_de_erro_da_feature(
+    capsys: pytest.CaptureFixture[str], isolated_data_dir: Any
+) -> None:
+    assert main(["notes", "add", "   "]) == 1
+    _, err = capsys.readouterr()
+    assert "Erro:" in err
 
 
 def test_notes_add_and_list(capsys: pytest.CaptureFixture[str], isolated_data_dir: Any) -> None:
