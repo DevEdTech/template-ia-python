@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import datetime, timedelta
+
 import pytest
 
 from app_template.features.notes.model import Note, NoteValidationError, create_note, validate_title
@@ -20,6 +22,14 @@ def test_create_note() -> None:
     assert note.title == "Teste"
     assert note.id is not None
     assert note.created_at is not None
+
+
+def test_create_note_registra_data_com_fuso() -> None:
+    """Sem fuso explícito, notas de máquinas diferentes ficariam incomparáveis."""
+    created_at = datetime.fromisoformat(create_note("Com fuso").created_at)
+
+    assert created_at.tzinfo is not None
+    assert created_at.utcoffset() == timedelta(0)
 
 
 def test_note_record_round_trip() -> None:

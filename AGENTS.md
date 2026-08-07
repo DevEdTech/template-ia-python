@@ -62,6 +62,12 @@
 - Toda mudança de comportamento deve considerar testes (pytest).
 - Teste o resultado observável, não os detalhes internos.
 - Teste GUI com casos de uso, controladores ou janelas falsas; não dependa de display real na suíte padrão.
+- O `validate` exige 80% de cobertura. Não coloque lógica em `build_window` nem em `create_*_panel`: elas ficam fora da medição por exigirem display.
+
+## Erros e diagnóstico
+
+- Na CLI, escreva erros em `stderr` e retorne código diferente de zero; não use o logger para falar com o usuário.
+- Na GUI, use o logger: um executável em modo windowed não tem terminal.
 
 ## Documentação
 
@@ -70,4 +76,5 @@
 ## Conclusão
 
 Uma tarefa só está concluída quando critérios de aceite, testes,
-lint, typecheck, build e documentação estiverem satisfeitos.
+cobertura, lint, typecheck, build, documentação e o CI estiverem
+satisfeitos.

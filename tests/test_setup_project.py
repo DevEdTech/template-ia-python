@@ -1,5 +1,14 @@
+"""Testes da personalização do template.
+
+Exercitam o `setup_project.py` sobre uma cópia do projeto atual. Só fazem
+sentido enquanto o projeto ainda é o template pristino: depois do setup, as
+interfaces e a demonstração que eles manipulam podem já ter sido removidas —
+e restaurá-las é, por decisão de projeto, tarefa do Git.
+"""
+
 from __future__ import annotations
 
+import json
 import os
 import shutil
 import subprocess
@@ -7,7 +16,23 @@ import sys
 import tomllib
 from pathlib import Path
 
+import pytest
+
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+
+def _is_pristine_template() -> bool:
+    state_file = PROJECT_ROOT / ".template-state.json"
+    if not state_file.exists():
+        return False
+    state = json.loads(state_file.read_text(encoding="utf-8"))
+    return bool(state["interface"] == "both" and not state["exampleRemoved"])
+
+
+pytestmark = pytest.mark.skipif(
+    not _is_pristine_template(),
+    reason="o projeto já foi personalizado; o setup do template não se aplica mais",
+)
 
 
 def _copy_fixture(destination: Path) -> None:

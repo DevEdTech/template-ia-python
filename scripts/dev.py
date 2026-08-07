@@ -22,6 +22,7 @@ from __future__ import annotations
 import shutil
 import subprocess
 import sys
+import tempfile
 from collections.abc import Sequence
 from pathlib import Path
 
@@ -136,17 +137,83 @@ def task_smoke_package(args: list[str]) -> int:
     return _run(_environment_script("smoke_package.py", *args))
 
 
+def task_check_workflows(args: list[str]) -> int:
+    """Valida os workflows do GitHub Actions com o actionlint.
+
+    Um workflow invalido nao falha: ele simplesmente nao roda. Nao adianta
+    conferir isso dentro do proprio CI, porque um `ci.yml` quebrado nao chega a
+    iniciar — a verificacao precisa acontecer antes do push, aqui.
+    """
+    workflows = PROJECT_ROOT / ".github" / "workflows"
+    if not workflows.is_dir():
+        print("Nenhum workflow para verificar.")
+        return 0
+    if not _HAS_UV:
+        print(
+            "A verificacao de workflows requer o uv (https://docs.astral.sh/uv/).",
+            file=sys.stderr,
+        )
+        return 1
+    files = sorted(str(path) for path in workflows.glob("*.y*ml"))
+    if not files:
+        print("Nenhum workflow para verificar.")
+        return 0
+    # `uvx` roda a ferramenta de forma efemera, sem entrar nas dependencias.
+    return _run(["uvx", "--from", "actionlint-py", "actionlint", *files, *args])
+
+
+def task_audit(args: list[str]) -> int:
+    """Confere as dependencias bloqueadas contra o banco de vulnerabilidades.
+
+    Fica fora do `validate` porque depende de rede: o gate local continua
+    funcionando offline. O CI roda esta tarefa a cada PR e semanalmente.
+    """
+    if not _HAS_UV:
+        print(
+            "A auditoria requer o uv (https://docs.astral.sh/uv/).\n"
+            "Sem uv, rode manualmente: pip-audit",
+            file=sys.stderr,
+        )
+        return 1
+    # `--no-emit-project` deixa de fora o proprio pacote local: o alvo da
+    # auditoria sao as dependencias de terceiros, e um editable nao e hashavel.
+    export = [
+        "uv",
+        "export",
+        "--locked",
+        "--all-groups",
+        "--no-emit-project",
+        "--format",
+        "requirements-txt",
+    ]
+    print(f"$ {' '.join(export)}", flush=True)
+    result = subprocess.run(export, cwd=PROJECT_ROOT, capture_output=True, text=True, check=False)
+    if result.returncode != 0:
+        print(result.stderr, file=sys.stderr)
+        return result.returncode
+    with tempfile.TemporaryDirectory(prefix="python-audit-") as directory:
+        requirements = Path(directory) / "requirements.txt"
+        requirements.write_text(result.stdout, encoding="utf-8")
+        # `uvx` executa a ferramenta de forma efemera: nenhuma dependencia nova
+        # entra no ambiente de desenvolvimento so por causa da auditoria.
+        return _run(["uvx", "pip-audit", "--requirement", str(requirements), *args])
+
+
 def task_validate(args: list[str]) -> int:
     """Porta unica de qualidade: roda tudo, na ordem, parando no primeiro erro."""
     return _run_all(
         [
+            # As copias de skills sao artefatos gerados e ignorados pelo Git:
+            # regenera antes de conferir para que um clone novo ja fique verde.
+            _script("sync_skills.py"),
             _script("check_skills.py"),
             _script("check_architecture.py"),
             _script("check_docs.py"),
             _tool("ruff", "format", "--check"),
             _tool("ruff", "check"),
             _tool("mypy"),
-            _tool("pytest"),
+            # Com `--cov` o limite de cobertura do pyproject.toml passa a valer.
+            _tool("pytest", "--cov"),
             _build_cmd(),
             _environment_script("smoke_package.py"),
         ]
@@ -173,6 +240,8 @@ TASKS = {
     "check-docs": (task_check_docs, "Valida links e comandos da documentação."),
     "generate-feature": (task_generate_feature, "Gera o esqueleto de uma feature."),
     "smoke-package": (task_smoke_package, "Instala e testa o wheel em ambiente limpo."),
+    "check-workflows": (task_check_workflows, "Valida os workflows do GitHub Actions."),
+    "audit": (task_audit, "Audita as dependencias em busca de vulnerabilidades."),
     "validate": (task_validate, "Roda qualidade, testes, build e smoke do wheel."),
 }
 

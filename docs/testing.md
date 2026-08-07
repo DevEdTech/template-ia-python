@@ -39,6 +39,12 @@ python scripts/dev.py test-cov
 python scripts/dev.py test -k nome_do_teste -v
 ```
 
+## Cobertura
+
+O `validate` roda o pytest com `--cov` e **falha abaixo de 80%**. O limite é um piso, não uma meta: cobertura alta com testes que verificam estado interno é pior do que cobertura menor com testes de comportamento.
+
+Duas funções ficam fora da medição, marcadas com `# pragma: no cover`: `build_window` e `create_*_panel`. Elas só executam com display real, que a suíte padrão não usa. A contrapartida é uma fronteira a respeitar — **lógica não pode migrar para dentro delas**, ou deixa de ser medida e testada. Regra e orquestração pertencem ao controlador da feature (ex.: `NotesController`), que é testado sem widgets.
+
 ## Isolamento de I/O
 
 Testes não devem tocar dados reais. Usar `tmp_path` e `monkeypatch` para redirecionar persistência e ambiente. A fixture `isolated_data_dir` já aponta os dados das features para uma pasta temporária.

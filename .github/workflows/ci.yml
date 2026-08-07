@@ -1,0 +1,63 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+# O template não publica nada a partir do CI: leitura basta.
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: validate (${{ matrix.os }}, py${{ matrix.python-version }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # A matriz varia só o sistema: o template promete comportamento
+        # idêntico nos dois, e há código sensível a SO (caminhos de dados,
+        # fsync de diretório, locks de arquivo).
+        os: [ubuntu-latest, windows-latest]
+        # Uma única versão — a mesma do `requires-python` e do
+        # `.python-version`, para que o testado e o prometido não divirjam.
+        # Declarada na matriz (e não em `env`) porque o contexto `env` não
+        # existe em `jobs.<id>.name`, e ali o valor precisa aparecer.
+        python-version: ["3.13"]
+    env:
+      # Tem precedência sobre o .python-version; mantidos iguais de propósito.
+      UV_PYTHON: ${{ matrix.python-version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Instalar dependências
+        run: uv sync --locked
+
+      - name: Validar (skills, arquitetura, docs, lint, tipos, testes, build)
+        run: uv run python scripts/dev.py validate
+
+  hooks:
+    name: pre-commit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Instalar uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      # Garante que quem não instalou os hooks localmente ainda seja coberto.
+      - name: Rodar hooks em todos os arquivos
+        run: uv run pre-commit run --all-files --show-diff-on-failure

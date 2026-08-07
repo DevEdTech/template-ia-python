@@ -22,6 +22,7 @@ Exemplo em `.env.example`:
 ```
 # APP_TEMPLATE_API_BASE_URL=https://api.exemplo.com
 # APP_TEMPLATE_DATA_DIR=/caminho/para/dados
+# APP_TEMPLATE_LOG_LEVEL=DEBUG
 ```
 
 ## Segredos
@@ -29,6 +30,12 @@ Exemplo em `.env.example`:
 - Não coloque chaves de API, senhas ou tokens no código.
 - Segredos vêm de variáveis de ambiente (ou de um cofre), lidos em `services.py`.
 - Um executável PyInstaller **contém** todo o código empacotado; nunca embuta segredos nele.
+
+A regra é verificada, não apenas documentada: o hook do `gitleaks` bloqueia um segredo no commit e o workflow `security` varre o histórico do repositório. Se um segredo já tiver sido commitado, **rotacione-o** — removê-lo do histórico não desfaz a exposição.
+
+## Vulnerabilidades em dependências
+
+`python scripts/dev.py audit` roda o `pip-audit` sobre o `uv.lock` — o que realmente é instalado. O CI repete a cada Pull Request e semanalmente, para que uma vulnerabilidade divulgada depois do merge ainda apareça. A ferramenta é executada via `uvx`, de forma efêmera, então auditar não acrescenta dependência ao ambiente de desenvolvimento.
 
 ## Portabilidade (Windows, macOS, Linux)
 

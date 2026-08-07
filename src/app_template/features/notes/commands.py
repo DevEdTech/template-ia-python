@@ -1,31 +1,39 @@
+"""Adapta a feature de notas para a linha de comando.
+
+Erros vão para `stderr` sem carimbo de data nem nome de módulo: é o que um
+terminal espera, e permite redirecionar saída útil e diagnóstico em separado.
+"""
+
 from __future__ import annotations
 
 import argparse
+import sys
 from typing import Any
 
 from app_template.features.notes.services import NoteStorageError
 from app_template.features.notes.use_cases import add_note, list_notes, remove_note
-from app_template.logger import get_logger
 
-logger = get_logger(__name__)
+
+def _fail(message: str) -> int:
+    """Reporta um erro no canal correto e devolve o código de saída."""
+    print(f"Erro: {message}", file=sys.stderr)
+    return 1
 
 
 def _handle_add(args: argparse.Namespace) -> int:
     try:
         note = add_note(args.title)
-        print(f"Nota adicionada com sucesso! (ID: {note.id})")
-        return 0
-    except (ValueError, NoteStorageError) as e:
-        logger.error(f"Erro: {e}")
-        return 1
+    except (ValueError, NoteStorageError) as exc:
+        return _fail(str(exc))
+    print(f"Nota adicionada com sucesso! (ID: {note.id})")
+    return 0
 
 
 def _handle_list(_args: argparse.Namespace) -> int:
     try:
         notes = list_notes()
     except NoteStorageError as exc:
-        logger.error(f"Erro: {exc}")
-        return 1
+        return _fail(str(exc))
     if not notes:
         print("Nenhuma nota encontrada.")
         return 0
@@ -41,14 +49,11 @@ def _handle_remove(args: argparse.Namespace) -> int:
     try:
         success = remove_note(args.id)
     except NoteStorageError as exc:
-        logger.error(f"Erro: {exc}")
-        return 1
-    if success:
-        print(f"Nota {args.id} removida com sucesso!")
-        return 0
-    else:
-        logger.error(f"Erro: Nota com ID {args.id} não encontrada.")
-        return 1
+        return _fail(str(exc))
+    if not success:
+        return _fail(f"Nota com ID {args.id} não encontrada.")
+    print(f"Nota {args.id} removida com sucesso!")
+    return 0
 
 
 def register_notes_commands(subparsers: Any) -> None:

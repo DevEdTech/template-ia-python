@@ -3,7 +3,7 @@ name = "python-project-template"
 dynamic = ["version"]
 description = "Template de aplicações Python com CLI ou GUI, qualidade e build multiplataforma prontos."
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.13"
 license = { text = "Proprietary" }
 authors = [{ name = "Sua organizacao" }]
 keywords = ["template", "cli", "gui", "python"]
@@ -38,6 +38,8 @@ dev = [
 
 [project.optional-dependencies]
 # Espelho de [dependency-groups].dev para quem usa pip em vez de uv.
+# A duplicacao e inevitavel: optional-dependencies (PEP 621) nao aceita
+# `include-group` (PEP 735). `tests/test_packaging.py` impede que divirjam.
 dev = [
   "ruff>=0.9.0",
   "mypy>=1.14.0",
@@ -97,7 +99,7 @@ indent-style = "space"
 # mypy: checagem de tipos em modo estrito.
 # ---------------------------------------------------------------------------
 [tool.mypy]
-python_version = "3.11"
+python_version = "3.13"
 strict = true
 warn_unused_configs = true
 warn_redundant_casts = true
@@ -126,4 +128,9 @@ source = ["src"]
 [tool.coverage.report]
 show_missing = true
 skip_covered = true
+# Aplicado de fato: `validate` roda o pytest com `--cov`.
 fail_under = 80
+exclude_also = [
+  # Guarda de execucao direta: exercitada pelo smoke do wheel, nao pela suite.
+  'if __name__ == .__main__.:',
+]

@@ -28,7 +28,7 @@ Indicado para:
 
 ## Pré-requisitos
 
-- Python 3.11 ou superior (o arquivo `.python-version` indica a versão recomendada)
+- Python 3.13 (a mesma versão em `.python-version`, no `requires-python` e no CI)
 - [uv](https://docs.astral.sh/uv/) (recomendado) — ou `pip` + `venv` como alternativa
 - git
 - Um agente de código (ex.: Claude Code)
@@ -107,7 +107,25 @@ Antes de considerar qualquer alteração pronta, rode:
 python scripts/dev.py validate
 ```
 
-Esse comando executa, em sequência: verificação das skills, arquitetura e documentação, formatação, lint, checagem de tipos, testes, build e instalação do wheel em um ambiente limpo. Se todos passarem, a alteração está saudável.
+Esse comando executa, em sequência: sincronização e verificação das skills, arquitetura e documentação, formatação, lint, checagem de tipos, testes com cobertura mínima, build e instalação do wheel em um ambiente limpo. Se todos passarem, a alteração está saudável.
+
+O `validate` funciona sem rede e vale para um clone recém-feito.
+
+### Verificação automática
+
+O GitHub Actions repete o `validate` a cada push e Pull Request, em **Python 3.13**, no **Linux e no Windows** — os dois sistemas em que o template promete comportamento idêntico. Um workflow separado audita as dependências (`pip-audit` sobre o `uv.lock`) e varre o histórico em busca de segredos (`gitleaks`), também uma vez por semana para que uma vulnerabilidade nova apareça sem depender de um push.
+
+Localmente, instale os hooks para receber o mesmo retorno antes do commit:
+
+```bash
+uv run pre-commit install
+```
+
+A auditoria depende de rede e por isso fica fora do `validate`; rode-a sob demanda:
+
+```bash
+python scripts/dev.py audit
+```
 
 ## Comandos
 
@@ -130,6 +148,8 @@ O runner `scripts/dev.py` é o equivalente cross-platform ao `npm run` — funci
 | `python scripts/dev.py check-docs`       | Valida links, tarefas e referências da documentação              |
 | `python scripts/dev.py generate-feature --name clientes` | Gera a estrutura inicial de uma feature           |
 | `python scripts/dev.py smoke-package`    | Instala e testa o wheel em um ambiente limpo                     |
+| `python scripts/dev.py check-workflows`  | Valida os workflows do GitHub Actions (actionlint)               |
+| `python scripts/dev.py audit`            | Audita as dependências em busca de vulnerabilidades              |
 | `python scripts/dev.py validate`         | Roda qualidade, testes, build e smoke do wheel                   |
 
 > **Atalho Unix (opcional):** no macOS e Linux há um `Makefile` — `make validate`, `make test`, etc. No Windows, use os comandos `python scripts/dev.py <tarefa>` acima, que funcionam em qualquer sistema.

@@ -16,9 +16,11 @@ coverage.xml
 build/
 dist/
 
-# Skills geradas (cópias sincronizadas)
-.claude/
-.agents/
+# Skills geradas (cópias sincronizadas).
+# Apenas as cópias são ignoradas: `.claude/settings.json` e demais configurações
+# de agente devem ser versionadas, pois definem permissões e hooks do projeto.
+.claude/skills/
+.agents/skills/
 
 # Segredos e variáveis locais
 .env
