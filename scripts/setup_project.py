@@ -316,6 +316,7 @@ def configure_interface(package_name: str, distribution: str, interface: str) ->
         for path in (
             package / "cli.py",
             feature / "commands.py",
+            PROJECT_ROOT / "tests/test_cli.py",
             PROJECT_ROOT / "tests/features/notes/test_commands.py",
         ):
             path.unlink(missing_ok=True)
