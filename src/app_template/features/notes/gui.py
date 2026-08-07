@@ -38,7 +38,13 @@ class NotesController:
         return self._list()
 
 
-def create_notes_panel(parent: tk.Misc) -> ttk.Frame:
+def create_notes_panel(parent: tk.Misc) -> ttk.Frame:  # pragma: no cover - exige display real
+    """Monta o painel de notas.
+
+    Fora da medição de cobertura porque só executa com display. Toda a lógica
+    fica em `NotesController`, testado sem widgets: mantenha este corpo restrito
+    a montagem de widgets e tradução de eventos em chamadas do controlador.
+    """
     import tkinter as tk
     from tkinter import messagebox, ttk
 

@@ -333,16 +333,23 @@ def write_empty_compositions(package_name: str, distribution: str, interface: st
     package = PROJECT_ROOT / "src" / package_name
     if interface in {"cli", "both"}:
         (package / "cli.py").write_text(
-            f'''import argparse
+            f'''"""Composição da interface de linha de comando da aplicação."""
+
+import argparse
 from collections.abc import Sequence
+
 from {package_name} import APP_DISPLAY_NAME, __version__
 
+
 def build_parser() -> argparse.ArgumentParser:
+    """Constroi o parser raiz. Registre aqui os comandos de cada feature."""
     parser = argparse.ArgumentParser(prog="{distribution}", description=APP_DISPLAY_NAME)
     parser.add_argument("--version", action="version", version=f"%(prog)s {{__version__}}")
     return parser
 
+
 def main(argv: Sequence[str] | None = None) -> int:
+    """Ponto de entrada da CLI. Retorna o codigo de saida do processo."""
     parser = build_parser()
     parser.parse_args(argv)
     parser.print_help()
@@ -352,22 +359,36 @@ def main(argv: Sequence[str] | None = None) -> int:
         )
     if interface in {"gui", "both"}:
         (package / "gui.py").write_text(
-            f"""from collections.abc import Callable
+            f'''"""Composição da interface gráfica da aplicação."""
+
+from collections.abc import Callable
 from typing import Protocol
+
 from {package_name} import APP_DISPLAY_NAME
 from {package_name}.logger import get_logger
 
 logger = get_logger(__name__)
 
+
 class GuiWindow(Protocol):
+    """Contrato mínimo usado pelo loop principal e pelos testes."""
+
     def mainloop(self) -> None: ...
 
+
 class GuiUnavailableError(RuntimeError):
-    pass
+    """Indica que o ambiente atual não consegue abrir a GUI."""
+
 
 WindowFactory = Callable[[], GuiWindow]
 
-def build_window() -> GuiWindow:
+
+def build_window() -> GuiWindow:  # pragma: no cover - exige display real
+    """Monta a janela raiz sem iniciar o loop de eventos.
+
+    Fora da medição de cobertura: a suíte padrão não abre `Tk()`. Mantenha a
+    lógica fora daqui, nos casos de uso e controladores de cada feature.
+    """
     try:
         import tkinter as tk
         from tkinter import ttk
@@ -381,16 +402,18 @@ def build_window() -> GuiWindow:
     ttk.Label(window, text="Projeto pronto para sua primeira feature.", padding=24).pack()
     return window
 
+
 def main(window_factory: WindowFactory | None = None) -> int:
+    """Abre a GUI e retorna zero quando o loop termina normalmente."""
     factory = build_window if window_factory is None else window_factory
     try:
         window = factory()
     except GuiUnavailableError as exc:
-        logger.error(f"GUI indisponível: {{exc}}")
+        logger.error("GUI indisponível: %s", exc)
         return 1
     window.mainloop()
     return 0
-""",
+''',
             encoding="utf-8",
         )
 
@@ -419,6 +442,29 @@ def run_sync_skills() -> None:
     )
     if result.returncode != 0:
         raise RuntimeError("A sincronização de skills falhou.")
+
+
+def run_format() -> None:
+    """Reformata o projeto após as reescritas do setup.
+
+    Trocar identificadores muda o comprimento das linhas, e o que estava
+    quebrado para caber pode deixar de precisar da quebra. Sem este passo o
+    primeiro `validate` do projeto novo falharia em `ruff format --check`.
+
+    É best-effort: o setup pode rodar antes de as dependências de
+    desenvolvimento existirem, e formatação não deve impedir a personalização.
+    """
+    command = (
+        ["uv", "run", "ruff", "format"]
+        if shutil.which("uv")
+        else [sys.executable, "-m", "ruff", "format"]
+    )
+    result = subprocess.run(command, cwd=PROJECT_ROOT, check=False, capture_output=True)
+    if result.returncode != 0:
+        log(
+            "\nAviso: não foi possível formatar automaticamente. "
+            "Rode `python scripts/dev.py format` depois de instalar as dependências."
+        )
 
 
 def apply_changes(args: argparse.Namespace) -> None:
@@ -455,6 +501,7 @@ def apply_changes(args: argparse.Namespace) -> None:
             reset_tasks()
         if not args.no_sync_skills:
             run_sync_skills()
+        run_format()
         new_state: TemplateState = {
             "distributionName": distribution,
             "packageName": package,

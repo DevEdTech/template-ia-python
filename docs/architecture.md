@@ -93,6 +93,21 @@ Callbacks gráficos devem retornar rapidamente. Para rede, arquivos grandes ou C
 
 Todo acesso externo passa por `services.py`. Dados persistidos são validados antes de entrar no modelo e a escrita local usa substituição atômica. O exemplo de notas grava um envelope versionado com revisão, migra o array legado, preserva conteúdo inválido em backup e usa um lock exclusivo com comparação de revisão para impedir perda silenciosa entre processos. Falhas de leitura, conflito e escrita têm códigos estáveis que CLI e GUI apresentam sem confirmar falso sucesso. Ver [integrations.md](integrations.md).
 
+A escrita é durável e o lock é recuperável:
+
+- O conteúdo é gravado, sincronizado com `fsync` e só então trocado pelo arquivo definitivo. Uma queda no meio do caminho preserva o arquivo anterior íntegro, nunca um truncado.
+- Quem adquire o lock registra PID e horário. Um lock além do TTL pertence a um processo que morreu sem liberá-lo e é descartado. Sem isso, um único crash deixaria os dados permanentemente somente-leitura.
+- Datas são gravadas com fuso explícito (UTC), para continuarem comparáveis entre máquinas e fusos.
+
+## Diagnóstico e comunicação com o usuário
+
+São canais diferentes e não devem se misturar:
+
+- **CLI**: erros vão para `stderr` em texto limpo, e o comando retorna código diferente de zero. Carimbo de data e nome de módulo atrapalham quem lê ou redireciona a saída de um terminal.
+- **GUI**: usa o logger (`logger.py`), porque um executável em modo windowed não tem terminal onde escrever.
+
+O nível do logger é ajustável por `APP_TEMPLATE_LOG_LEVEL` sem alterar código.
+
 ## Type hints e qualidade
 
 Todo código usa type hints e passa no mypy estrito. Ruff cuida de formatação e lint, e `check-architecture` aplica os limites entre módulos. As checagens fazem parte de `python scripts/dev.py validate`.

@@ -14,13 +14,33 @@ Fluxo recomendado para levar uma ideia até o código, de forma organizada e ver
 8. **Validação local**: rode `python scripts/dev.py validate` até ficar tudo verde.
 9. **Commit**: registre as mudanças com mensagem clara.
 10. **Pull Request**: abra o PR descrevendo o que mudou e por quê.
-11. **Revisão**: ajuste conforme os comentários antes de integrar.
+11. **Verificação automática**: aguarde o CI; ele repete o `validate` nas versões e sistemas suportados.
+12. **Revisão**: ajuste conforme os comentários antes de integrar.
 
 ## Ambiente
 
 - Crie o ambiente com `uv sync` (recomendado) ou `python -m venv .venv` + `pip install -e ".[dev]"`.
 - A versão do Python recomendada está em `.python-version`.
 - O `uv.lock` deve ser versionado para builds reproduzíveis.
+- Instale os hooks com `uv run pre-commit install` para antecipar o retorno do CI.
+
+## Verificação automática
+
+Dois workflows rodam no GitHub Actions:
+
+| Workflow    | Quando                              | O que faz                                                             |
+| ----------- | ----------------------------------- | --------------------------------------------------------------------- |
+| `ci`        | push, Pull Request                  | `validate` em Python 3.11/3.12/3.13 × Linux/Windows, e `pre-commit`     |
+| `security`  | push, Pull Request, semanalmente    | `pip-audit` sobre o `uv.lock` e `gitleaks` sobre o histórico            |
+
+O `validate` é a porta local e permanece **offline**. A auditoria de dependências depende de rede, então fica fora dele e é executada sob demanda com `python scripts/dev.py audit`.
+
+## Dependências e segurança
+
+- Toda dependência nova é justificada no Pull Request e registrada em um ADR quando for de runtime.
+- `python scripts/dev.py audit` confere o `uv.lock` contra o banco de vulnerabilidades; o CI repete semanalmente.
+- Segredos nunca vão para o repositório: o hook do `gitleaks` bloqueia no commit e o CI varre o histórico.
+- Valores locais ficam em `.env.local`, sempre fora do Git.
 
 ## Mensagens de commit
 

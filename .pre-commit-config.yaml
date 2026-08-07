@@ -13,3 +13,27 @@ repos:
       - id: ruff
         args: [ --fix ]
       - id: ruff-format
+
+  # Impede que um segredo chegue ao commit. A regra "nunca faça commit de
+  # segredos" do AGENTS.md deixa de depender só de disciplina.
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.24.0
+    hooks:
+      - id: gitleaks
+
+  # mypy e pytest rodam localmente pelo `dev.py`, para que o hook exercite
+  # exatamente o mesmo gate que o CI — sem duplicar configuração.
+  - repo: local
+    hooks:
+      - id: typecheck
+        name: mypy (modo estrito)
+        entry: python scripts/dev.py typecheck
+        language: system
+        pass_filenames: false
+        types: [python]
+      - id: tests
+        name: pytest
+        entry: python scripts/dev.py test
+        language: system
+        pass_filenames: false
+        types: [python]

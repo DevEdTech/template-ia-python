@@ -13,7 +13,14 @@ python scripts/dev.py validate
 ```
 
 4. Abra o Pull Request descrevendo o que mudou e por quê.
-5. Aguarde a revisão e ajuste conforme os comentários.
+5. Aguarde o CI: ele repete o `validate` em Python 3.11/3.12/3.13, no Linux e no Windows, e roda auditoria de dependências e varredura de segredos.
+6. Aguarde a revisão e ajuste conforme os comentários.
+
+Para receber o mesmo retorno antes do commit, instale os hooks uma vez:
+
+```bash
+uv run pre-commit install
+```
 
 ## Convenção de commits
 
@@ -41,6 +48,8 @@ Toda mudança de arquitetura ou de regra do template deve atualizar a documenta�
 ## Política de dependências
 
 Mantenha o conjunto de dependências enxuto. Toda nova dependência precisa ser justificada no Pull Request: por que ela é necessária, o que ela resolve e por que não dá para fazer com o que já existe. Prefira a biblioteca padrão (ex.: `argparse`, `urllib`, `pathlib`, `json`) antes de adicionar uma dependência de runtime.
+
+Ao alterar dependências, rode `python scripts/dev.py audit` e mantenha o `uv.lock` versionado junto da mudança.
 
 ## Qualidade de código
 

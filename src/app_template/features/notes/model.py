@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import UTC, datetime
 from typing import TypedDict
 
 
@@ -58,9 +58,14 @@ def validate_title(title: str) -> str:
 
 
 def create_note(title: str) -> Note:
+    """Cria uma nota com identificador único e data de criação em UTC.
+
+    A data é gravada com fuso explícito para que notas criadas em máquinas ou
+    fusos diferentes continuem comparáveis e ordenáveis entre si.
+    """
     cleaned_title = validate_title(title)
     return Note(
         id=str(uuid.uuid4()),
         title=cleaned_title,
-        created_at=datetime.now().isoformat(),
+        created_at=datetime.now(UTC).isoformat(),
     )

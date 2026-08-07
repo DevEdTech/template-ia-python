@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 import json
+import os
+import time
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -55,10 +58,35 @@ def test_detecta_outro_processo_com_lock_ativo(isolated_data_dir: Any) -> None:
         save_notes([create_note("Concorrente")])
 
 
-def test_reporta_falha_de_escrita(isolated_data_dir: Any, monkeypatch: pytest.MonkeyPatch) -> None:
-    def fail_write(*_args: object, **_kwargs: object) -> int:
-        raise OSError("sem espaço")
+def test_recupera_lock_abandonado_por_processo_morto(isolated_data_dir: Any) -> None:
+    """Um lock órfão não pode deixar as notas permanentemente somente-leitura."""
+    lock = isolated_data_dir / "notes.lock"
+    lock.write_text(json.dumps({"pid": 999_999, "acquired_at": 0.0}), encoding="utf-8")
 
-    monkeypatch.setattr("pathlib.Path.write_text", fail_write)
+    note = create_note("Depois do crash")
+    assert save_notes([note]).revision == 1
+    assert load_notes() == [note]
+    assert not lock.exists()
+
+
+def test_recupera_lock_antigo_sem_metadados(isolated_data_dir: Any) -> None:
+    lock = isolated_data_dir / "notes.lock"
+    lock.write_text("formato desconhecido", encoding="utf-8")
+    stale = time.time() - 3600
+    os.utime(lock, (stale, stale))
+
+    assert save_notes([create_note("Recuperada")]).revision == 1
+
+
+def test_reporta_falha_de_escrita(isolated_data_dir: Any, monkeypatch: pytest.MonkeyPatch) -> None:
+    original_open: Any = Path.open
+
+    def fail_open(self: Path, *args: Any, **kwargs: Any) -> Any:
+        # Só a escrita do arquivo temporário falha; a leitura precisa continuar.
+        if self.suffix == ".tmp":
+            raise OSError("sem espaço")
+        return original_open(self, *args, **kwargs)
+
+    monkeypatch.setattr("pathlib.Path.open", fail_open)
     with pytest.raises(NoteStorageError, match="salvar"):
         save_notes([create_note("Falha")])

@@ -30,8 +30,13 @@ class GuiUnavailableError(RuntimeError):
 WindowFactory = Callable[[], GuiWindow]
 
 
-def build_window() -> GuiWindow:
-    """Monta a janela raiz sem iniciar o loop de eventos."""
+def build_window() -> GuiWindow:  # pragma: no cover - exige display real
+    """Monta a janela raiz sem iniciar o loop de eventos.
+
+    Fora da medição de cobertura: a suíte padrão não abre `Tk()` (ver
+    docs/testing.md). A lógica observável fica em `main` e nos controladores
+    de cada feature, que são testados com janelas e dependências falsas.
+    """
     try:
         import tkinter as tk
     except ImportError as exc:

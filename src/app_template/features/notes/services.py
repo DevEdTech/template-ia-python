@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import sys
+import time
 from collections.abc import Iterator
 from contextlib import contextmanager, suppress
 from dataclasses import dataclass
@@ -13,6 +14,10 @@ from app_template.features.notes.model import Note
 _STATE_FILENAME = "notes.json"
 _SCHEMA_VERSION = 1
 _ENV_DATA_DIR = "APP_TEMPLATE_DATA_DIR"
+# Um lock mais antigo que isto pertence a um processo que morreu sem liberá-lo.
+# Todas as operações protegidas são curtas (ler e reescrever um JSON pequeno),
+# então a margem é folgada o bastante para nunca roubar um lock legítimo.
+_LOCK_TTL_SECONDS = 30.0
 
 
 @dataclass(frozen=True)
@@ -62,16 +67,52 @@ def _lock_path() -> Path:
     return _state_path().with_suffix(".lock")
 
 
+def _create_lock(lock: Path) -> None:
+    """Cria o lock de forma exclusiva, registrando quem o adquiriu e quando.
+
+    Levanta ``FileExistsError`` quando outro processo já detém o lock.
+    """
+    descriptor = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+    with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
+        handle.write(json.dumps({"pid": os.getpid(), "acquired_at": time.time()}))
+
+
+def _lock_is_stale(lock: Path) -> bool:
+    """Indica se o lock foi abandonado por um processo que não o liberou."""
+    acquired: float | None = None
+    with suppress(OSError, json.JSONDecodeError, TypeError, ValueError):
+        payload = json.loads(lock.read_text(encoding="utf-8"))
+        if isinstance(payload, dict):
+            acquired = float(payload["acquired_at"])
+    if acquired is None:
+        # Lock de formato desconhecido: a data de modificação é o melhor sinal.
+        try:
+            acquired = lock.stat().st_mtime
+        except OSError:
+            return False
+    return (time.time() - acquired) > _LOCK_TTL_SECONDS
+
+
 @contextmanager
 def _exclusive_lock() -> Iterator[None]:
+    """Protege a escrita, recuperando-se de locks deixados por processos mortos."""
     lock = _lock_path()
     lock.parent.mkdir(parents=True, exist_ok=True)
     try:
-        descriptor = os.open(lock, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+        _create_lock(lock)
     except FileExistsError as exc:
-        raise NoteStorageConflictError() from exc
+        if not _lock_is_stale(lock):
+            raise NoteStorageConflictError() from exc
+        # O detentor anterior morreu: descarta o lock órfão e tenta uma vez mais.
+        # Se outro processo vencer a corrida, o O_EXCL abaixo falha e o conflito
+        # volta a ser reportado — nunca dois escritores ao mesmo tempo.
+        with suppress(OSError):
+            lock.unlink()
+        try:
+            _create_lock(lock)
+        except FileExistsError as retry_exc:
+            raise NoteStorageConflictError() from retry_exc
     try:
-        os.close(descriptor)
         yield
     finally:
         with suppress(OSError):
@@ -138,6 +179,22 @@ def _read_snapshot() -> tuple[NotesSnapshot, bool]:
         raise
 
 
+def _sync_directory(directory: Path) -> None:
+    """Persiste a própria entrada de diretório após um rename atômico.
+
+    Sem isso, uma queda de energia pode desfazer a troca do arquivo. O Windows
+    não permite abrir um diretório para sincronizar, então lá o passo é omitido.
+    """
+    if os.name == "nt":
+        return
+    with suppress(OSError):
+        descriptor = os.open(directory, os.O_RDONLY)
+        try:
+            os.fsync(descriptor)
+        finally:
+            os.close(descriptor)
+
+
 def _write_snapshot(snapshot: NotesSnapshot) -> None:
     path = _state_path()
     temporary = path.with_suffix(".tmp")
@@ -148,8 +205,14 @@ def _write_snapshot(snapshot: NotesSnapshot) -> None:
     }
     try:
         path.parent.mkdir(parents=True, exist_ok=True)
-        temporary.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+        # Grava, força o conteúdo em disco e só então troca o arquivo: uma queda
+        # no meio do caminho deixa o arquivo anterior intacto, nunca um truncado.
+        with temporary.open("w", encoding="utf-8") as handle:
+            handle.write(json.dumps(payload, ensure_ascii=False))
+            handle.flush()
+            os.fsync(handle.fileno())
         temporary.replace(path)
+        _sync_directory(path.parent)
     except OSError as exc:
         with suppress(OSError):
             temporary.unlink(missing_ok=True)
