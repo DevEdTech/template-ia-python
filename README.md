@@ -127,6 +127,10 @@ A auditoria depende de rede e por isso fica fora do `validate`; rode-a sob deman
 python scripts/dev.py audit
 ```
 
+O Dependabot verifica semanalmente as dependências do `uv` e as GitHub Actions,
+abrindo pull requests para revisão sem fazer merge automático. Consulte
+[SECURITY.md](SECURITY.md) para reportar vulnerabilidades de forma privada.
+
 ## Comandos
 
 O runner `scripts/dev.py` é o equivalente cross-platform ao `npm run` — funciona igual no Windows, macOS e Linux.

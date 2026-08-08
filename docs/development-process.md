@@ -17,6 +17,21 @@ Fluxo recomendado para levar uma ideia até o código, de forma organizada e ver
 11. **Verificação automática**: aguarde o CI; ele repete o `validate` nas versões e sistemas suportados.
 12. **Revisão**: ajuste conforme os comentários antes de integrar.
 
+## Proteções recomendadas no GitHub
+
+Depois de criar um repositório a partir do template:
+
+1. Em **Settings > Rules > Rulesets**, proteja a branch padrão.
+2. Exija pull request, ao menos uma aprovação e resolução das conversas.
+3. Exija os checks dos workflows `CI` e `Security` antes do merge.
+4. Impeça force push e exclusão da branch padrão.
+5. Em **Settings > Security**, habilite dependency graph, Dependabot alerts,
+   Dependabot security updates e private vulnerability reporting.
+
+Essas opções são configurações do repositório no GitHub e não podem ser ativadas
+somente por arquivos versionados. Pull requests do Dependabot passam pelo mesmo CI e
+pela mesma revisão; não há merge automático.
+
 ## Ambiente
 
 - Crie o ambiente com `uv sync` (recomendado) ou `python -m venv .venv` + `pip install -e ".[dev]"`.
