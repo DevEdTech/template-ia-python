@@ -12,10 +12,11 @@ Fluxo recomendado para levar uma ideia até o código, de forma organizada e ver
 6. **Branch**: crie uma branch para o trabalho (`git checkout -b feat/descricao`).
 7. **Implementação**: escreva o código seguindo a [arquitetura](architecture.md).
 8. **Validação local**: rode `python scripts/dev.py validate` até ficar tudo verde.
-9. **Commit**: registre as mudanças com mensagem clara.
-10. **Pull Request**: abra o PR descrevendo o que mudou e por quê.
-11. **Verificação automática**: aguarde o CI; ele repete o `validate` nas versões e sistemas suportados.
-12. **Revisão**: ajuste conforme os comentários antes de integrar.
+9. **Evidência da entrega**: registre em [entregas](entregas/README.md) o que foi entregue, os testes e o resultado das validações. Você pode pedir ao agente: "Use a skill document-delivery...".
+10. **Commit**: registre as mudanças com mensagem clara.
+11. **Pull Request**: abra o PR descrevendo o que mudou e por quê.
+12. **Verificação automática**: aguarde o CI; ele repete o `validate` nas versões e sistemas suportados.
+13. **Revisão**: ajuste conforme os comentários antes de integrar.
 
 ## Proteções recomendadas no GitHub
 
@@ -83,4 +84,5 @@ Uma tarefa está concluída quando:
 - Os testes passam
 - Não há erro de lint, typecheck ou build (`python scripts/dev.py validate` verde)
 - A documentação foi atualizada quando necessário
+- A entrega está registrada em [entregas](entregas/README.md)
 - As alterações estão registradas no Git

@@ -29,6 +29,7 @@ verificadas.
 10. Adicione ou atualize os testes de comportamento afetados.
 11. Execute `python scripts/dev.py validate`.
 12. Revise o diff final.
+13. Registre a evidência da entrega com `document-delivery`.
 
 ## Resultado esperado
 

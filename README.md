@@ -76,7 +76,7 @@ O produto já está definido em docs/prd.md. Use a skill plan-feature para plane
 
 **Cenário C — "O plano foi aprovado, implemente"**
 ```text
-O plano foi aprovado. Use a skill implement-feature para executar. Garanta que `python scripts/dev.py validate` passe limpo ao concluir.
+O plano foi aprovado. Use a skill implement-feature para executar. Garanta que `python scripts/dev.py validate` passe limpo ao concluir e registre a evidência com a skill document-delivery.
 ```
 
 ## Execução
@@ -209,6 +209,7 @@ Depois que o produto estiver definido:
 4. Gere a base com `python scripts/dev.py generate-feature --name clientes`; acrescente `--interface cli`, `gui` ou `both` e `--dry-run` quando necessário. O gerador cria modelo, contrato de serviço, caso de uso, adaptadores compatíveis e teste, mas não registra a feature na composição.
 5. Complete os testes observáveis da feature.
 6. Rode `python scripts/dev.py validate`.
+7. Peça a evidência da entrega: "Use a skill document-delivery...". O resumo do que foi entregue, dos testes e das validações fica em [docs/entregas](docs/entregas/README.md).
 
 Regras de arquitetura em [docs/architecture.md](docs/architecture.md).
 

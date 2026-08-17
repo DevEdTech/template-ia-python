@@ -18,6 +18,7 @@
 6. Execute `python scripts/dev.py validate`.
 7. Revise o diff final.
 8. Atualize a documentação afetada.
+9. Registre a evidência da entrega em `docs/entregas`.
 
 ## Arquitetura
 
@@ -72,6 +73,8 @@
 ## Documentação
 
 - Toda decisão relevante atualiza a documentação ou gera um ADR.
+- Toda entrega implementada gera um registro em `docs/entregas`, com
+  funcionalidades, testes e o resultado real das validações.
 
 ## Conclusão
 
