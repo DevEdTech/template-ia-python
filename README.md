@@ -67,6 +67,7 @@ Escolha o cenário que se encaixa no seu momento e cole no seu agente de IA.
 Estou começando um projeto novo. Faça o seguinte:
 1. Rode `uv sync` e depois `python scripts/setup_project.py --name="[meu-app]" --display-name="[Meu App]" --description="[descreva aqui]" --remove-example --reset-tasks`.
 2. Depois, use a skill plan-app para conduzir uma entrevista curta comigo e definirmos juntos o escopo do produto.
+3. Por fim, use a skill update-readme para reescrever este README descrevendo o projeto, não o template.
 ```
 
 **Cenário B — "Já sei o que quero, planeje a feature"**

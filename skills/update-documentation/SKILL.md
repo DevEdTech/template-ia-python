@@ -25,6 +25,7 @@ código.
 6. Registre limitações conhecidas.
 7. Registre decisões relevantes como ADR em `docs/decisions`.
 8. Atualize a documentação de integrações externas.
+9. Se o `README.md` também saiu do lugar, use `update-readme`.
 
 ## Resultado esperado
 
