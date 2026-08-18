@@ -26,6 +26,7 @@ código.
 7. Registre decisões relevantes como ADR em `docs/decisions`.
 8. Atualize a documentação de integrações externas.
 9. Se o `README.md` também saiu do lugar, use `update-readme`.
+10. Se a mudança criou ou revogou uma regra, use `update-agents`.
 
 ## Resultado esperado
 
