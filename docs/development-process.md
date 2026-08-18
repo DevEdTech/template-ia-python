@@ -83,6 +83,7 @@ Uma tarefa está concluída quando:
 - Funciona localmente
 - Os testes passam
 - Não há erro de lint, typecheck ou build (`python scripts/dev.py validate` verde)
+- O CI está verde no Pull Request
 - A documentação foi atualizada quando necessário
 - A entrega está registrada em [entregas](entregas/README.md)
 - As alterações estão registradas no Git

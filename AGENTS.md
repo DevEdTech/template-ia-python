@@ -42,6 +42,9 @@
 - Não adicione dependências sem explicar a necessidade.
 - Prefira a biblioteca padrão (stdlib) e dependências já existentes.
 - O template começa com zero dependências de runtime — mantenha assim quando possível.
+
+## Segurança
+
 - Nunca faça commit de segredos.
 
 ## Qualidade de código
@@ -79,6 +82,6 @@
 
 ## Conclusão
 
-Uma tarefa só está concluída quando critérios de aceite, testes,
-cobertura, lint, typecheck, build, documentação e o CI estiverem
-satisfeitos.
+Uma tarefa só está concluída quando todos os itens da definição de
+concluído estiverem satisfeitos. A lista fica em
+`docs/development-process.md` e é a única fonte da verdade.
