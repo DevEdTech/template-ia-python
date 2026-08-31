@@ -28,8 +28,8 @@ app-template-gui = "app_template.gui:main"
 # abaixo, que espelha este grupo.
 [dependency-groups]
 dev = [
-  "build>=1.2.2",
-  "ruff>=0.16.4",
+  "build>=1.6.0",
+  "ruff>=0.16.5",
   "mypy>=2.3.1",
   "pytest>=8.3.0",
   "pytest-cov>=6.0.0",
@@ -42,8 +42,8 @@ dev = [
 # A duplicacao e inevitavel: optional-dependencies (PEP 621) nao aceita
 # `include-group` (PEP 735). `tests/test_packaging.py` impede que divirjam.
 dev = [
-  "build>=1.2.2",
-  "ruff>=0.16.4",
+  "build>=1.6.0",
+  "ruff>=0.16.5",
   "mypy>=2.3.1",
   "pytest>=8.3.0",
   "pytest-cov>=6.0.0",
