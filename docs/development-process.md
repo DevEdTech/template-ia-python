@@ -40,6 +40,38 @@ pela mesma revisão; não há merge automático.
 - O `uv.lock` deve ser versionado para builds reproduzíveis.
 - Instale os hooks com `uv run pre-commit install` para antecipar o retorno do CI.
 
+## Validação sob medida
+
+`python scripts/dev.py validate` roda as suítes que o perfil do projeto manda.
+As flags servem para não pagar o gate inteiro em cada iteração:
+
+| Comando                                               | Para quê                                           |
+| ----------------------------------------------------- | -------------------------------------------------- |
+| `dev.py validate`                                     | o portão completo, antes de concluir               |
+| `dev.py validate --list`                              | ver perfil, capacidades e o que bloqueia           |
+| `dev.py validate --quick`                             | arquitetura, lint, tipos e testes sem cobertura    |
+| `dev.py validate --changed`                           | só o que os arquivos alterados afetam              |
+| `dev.py validate --changed main`                      | idem, comparando a branch com `main`               |
+| `dev.py validate --files src/<pacote>/features/x`     | derivar o alvo de um caminho específico            |
+| `dev.py validate --only lint test`                    | só estas suítes                                    |
+| `dev.py validate --skip build smoke-package`          | tudo menos estas                                   |
+| `dev.py validate --strict`                            | tratar aviso como falha (sobe para rigoroso)       |
+| `dev.py validate --no-bail`                           | rodar tudo antes de falhar                         |
+
+`--changed` e `--files` não param no arquivo tocado: o alvo é o **fechamento
+transitivo** do grafo de imports — os arquivos alterados mais todos que
+dependem deles — e os testes que cobrem esse conjunto. Mexer em `model.py` traz
+os testes de `use_cases`, dos adaptadores e das composições que o usam.
+
+Duas ressalvas, por construção:
+
+- **Cobertura não é aplicada em execução parcial.** O limite mede o projeto
+  inteiro; um subconjunto nunca o alcançaria. O número vem do gate completo e
+  do perfil.
+- **Mudança de configuração** (`pyproject.toml`, `uv.lock`,
+  `.template-state.json`...) cancela a seleção e roda tudo: ela altera a
+  interpretação de todo o resto.
+
 ## Verificação automática
 
 Dois workflows rodam no GitHub Actions:

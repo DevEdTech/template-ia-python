@@ -3,5 +3,9 @@
   "packageName": "app_template",
   "displayName": "Python Project Template",
   "interface": "both",
-  "exampleRemoved": false
+  "exampleRemoved": false,
+  "profile": "padrao",
+  "capabilities": {
+    "build_exe": true
+  }
 }

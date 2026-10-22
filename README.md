@@ -100,6 +100,25 @@ uv run python -m app_template.gui
 
 Sem uv, ative o ambiente e use `app-template`, `app-template-gui` ou `python -m app_template`.
 
+## Perfis e capacidades
+
+Nem todo projeto quer o mesmo rigor. `.template-state.json` declara o
+**perfil** e as **capacidades**:
+
+```bash
+python scripts/dev.py show-profile
+```
+
+| Perfil      | Para quê                   | O que bloqueia                            |
+| ----------- | -------------------------- | ----------------------------------------- |
+| `prototipo` | explorar, descartar depois | arquitetura, lint, tipos e testes         |
+| `padrao`    | o trabalho normal          | tudo, com cobertura mínima de 70%         |
+| `rigoroso`  | produção crítica           | tudo, com cobertura mínima de 80%         |
+
+As capacidades `cli` e `gui` vêm da escolha de interface do setup; `build_exe`
+liga o empacotamento em executável standalone e sai com `--no-build-exe`.
+Escolha o perfil no setup com `--profile=prototipo`.
+
 ## Validação
 
 Antes de considerar qualquer alteração pronta, rode:

@@ -18,6 +18,13 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 SCRIPTS_DIR = PROJECT_ROOT / "scripts"
 STATE_FILE = PROJECT_ROOT / ".template-state.json"
 
+# `scripts` e um pacote; a raiz entra no caminho de busca porque executar
+# `python scripts/setup_project.py` coloca `scripts/` ali, nao a raiz.
+if str(PROJECT_ROOT) not in sys.path:
+    sys.path.insert(0, str(PROJECT_ROOT))
+
+from scripts.project_config import PROFILES  # noqa: E402
+
 
 class TemplateState(TypedDict):
     distributionName: str
@@ -25,6 +32,10 @@ class TemplateState(TypedDict):
     displayName: str
     interface: str
     exampleRemoved: bool
+    #: prototipo | padrao | rigoroso — decide o que bloqueia no validate.
+    profile: str
+    #: Capacidades alem das interfaces; `cli` e `gui` vem de `interface`.
+    capabilities: dict[str, bool]
 
 
 DEFAULT_STATE: TemplateState = {
@@ -33,6 +44,8 @@ DEFAULT_STATE: TemplateState = {
     "displayName": "Python Project Template",
     "interface": "both",
     "exampleRemoved": False,
+    "profile": "padrao",
+    "capabilities": {"build_exe": True},
 }
 TRANSACTION_TARGETS = [
     ".template-state.json",
@@ -468,17 +481,31 @@ def run_format() -> None:
         )
 
 
+def resolve_profile(requested: str | None, current: str) -> str:
+    """Valida o perfil pedido, mantendo o atual quando nao houver pedido."""
+    if not requested:
+        return current
+    if requested not in PROFILES:
+        raise ValueError(f'Perfil desconhecido: "{requested}". Use {", ".join(PROFILES)}.')
+    return requested
+
+
 def apply_changes(args: argparse.Namespace) -> None:
     state = read_state()
     distribution = slugify_distribution(args.name or state["distributionName"])
     package = slugify_package(distribution)
     display = args.display_name or state["displayName"]
     interface = args.interface or state["interface"]
+    profile = resolve_profile(args.profile, state["profile"])
+    capabilities = dict(state["capabilities"])
+    if args.no_build_exe:
+        capabilities["build_exe"] = False
     validate_preconditions(state, interface)
     log("\nPlano do setup:")
     log(f"  - distribuição: {state['distributionName']} -> {distribution}")
     log(f"  - pacote: {state['packageName']} -> {package}")
     log(f"  - interface: {state['interface']} -> {interface}")
+    log(f"  - perfil: {state['profile']} -> {profile}")
     log(f"  - demonstração: {'remover' if args.remove_example else 'preservar'}")
     if args.dry_run:
         log("\nDry-run concluído; nenhum arquivo foi alterado.")
@@ -509,6 +536,8 @@ def apply_changes(args: argparse.Namespace) -> None:
             "displayName": display,
             "interface": interface,
             "exampleRemoved": state["exampleRemoved"] or args.remove_example,
+            "profile": profile,
+            "capabilities": capabilities,
         }
         STATE_FILE.write_text(
             json.dumps(new_state, ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
@@ -527,6 +556,12 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--license")
     parser.add_argument("--repository-url", dest="repository_url")
     parser.add_argument("--interface", choices=("cli", "gui", "both"))
+    parser.add_argument("--profile", choices=PROFILES)
+    parser.add_argument(
+        "--no-build-exe",
+        action="store_true",
+        help="desliga o empacotamento em executavel standalone",
+    )
     parser.add_argument("--remove-example", action="store_true")
     parser.add_argument("--reset-tasks", action="store_true")
     parser.add_argument("--init-docs", action="store_true", help=argparse.SUPPRESS)

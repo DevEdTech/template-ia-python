@@ -23,6 +23,7 @@ O agente lê os arquivos persistentes automaticamente. Use o prompt para a taref
 - **update-documentation** — atualiza a documentação após uma mudança.
 - **update-readme** — gera ou reescreve o `README.md` no padrão do template.
 - **update-agents** — atualiza o `AGENTS.md` da raiz quando as regras do projeto mudam.
+- **design-interface** — decide a experiência de um comando de CLI ou de uma tela de GUI antes de implementar: entradas, estados observáveis, mensagens de erro e comportamento sob demora.
 - **prepare-pull-request** — organiza commit e descrição do Pull Request.
 
 As skills canônicas ficam em `/skills`; as cópias em `.claude/skills` e `.agents/skills` são geradas por `python scripts/dev.py sync-skills`.

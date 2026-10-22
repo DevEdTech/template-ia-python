@@ -1,5 +1,24 @@
 # Instruções do projeto
 
+## Perfil deste projeto
+
+O perfil e as capacidades ficam em `.template-state.json` e decidem o que vale
+aqui. Veja o estado atual com:
+
+```bash
+python scripts/dev.py show-profile
+```
+
+- **Perfil** (`prototipo` | `padrao` | `rigoroso`): define o que bloqueia e o
+  que apenas avisa. Em `prototipo`, só arquitetura, lint, tipos e testes
+  bloqueiam.
+- **Capacidades**: o que o projeto usa. `cli` e `gui` vêm da escolha de
+  interface feita no setup; uma interface removida não existe mais no disco, e
+  as regras dela não se aplicam.
+
+Uma regra abaixo que mencione capacidade desligada não se aplica. Na dúvida,
+`show-profile` é a fonte da verdade, não este texto.
+
 ## Leia primeiro
 
 1. README.md
@@ -8,17 +27,28 @@
 4. docs/testing.md
 5. docs/building.md
 
-## Processo obrigatório
+## Processo
+
+Sempre, qualquer que seja o tamanho da mudança:
 
 1. Entenda a solicitação e os critérios de aceite.
 2. Inspecione os arquivos relevantes e os testes existentes.
-3. Apresente um plano para mudanças que afetam vários arquivos.
-4. Mantenha as alterações dentro do escopo solicitado.
-5. Adicione ou atualize testes para mudanças de comportamento.
-6. Execute `python scripts/dev.py validate`.
-7. Revise o diff final.
+3. Mantenha as alterações dentro do escopo solicitado.
+4. Adicione ou atualize testes para mudanças de comportamento.
+5. Execute `python scripts/dev.py validate` (ou `validate --changed` ao
+   iterar).
+6. Revise o diff final.
+
+Para mudança que afeta vários arquivos, cria funcionalidade, altera
+arquitetura ou integra serviço externo, acrescente:
+
+7. Apresente um plano antes de escrever código (`plan-feature`).
 8. Atualize a documentação afetada.
 9. Registre a evidência da entrega em `docs/entregas`.
+
+Correção pontual, ajuste de texto e mudança de uma linha param no passo 6:
+plano, documentação e registro de entrega existem para trabalho que muda o
+entendimento do projeto, não para toda edição.
 
 ## Arquitetura
 
@@ -27,8 +57,10 @@
 - Use a interface pública das features (o `__init__.py` de cada uma).
 - Mantenha a lógica de negócio em `model.py` e a orquestração compartilhada em `use_cases.py`.
 - Mantenha APIs externas e persistência atrás de serviços (`services.py`).
-- Isole adaptações de interface: `commands.py` para CLI e `gui.py` para GUI.
-- Mantenha as composições `src/<pacote>/cli.py` e `src/<pacote>/gui.py` sem regra de negócio.
+- Isole adaptações de interface: `commands.py` para CLI e `gui.py` para GUI
+  (apenas as interfaces que este projeto tem).
+- Mantenha as composições `src/<pacote>/cli.py` e `src/<pacote>/gui.py` sem
+  regra de negócio.
 - Mantenha `shared` neutro em relação ao domínio.
 - Não adicione abstrações sem necessidade demonstrada.
 
@@ -54,7 +86,8 @@
 - Funções e módulos públicos têm docstrings claras.
 - Prefira `pathlib` a manipulação de strings de caminho.
 - Escreva código portável entre Windows, macOS e Linux.
-- Não bloqueie o loop de eventos da GUI com I/O ou processamento demorado.
+- Com a capacidade `gui`: não bloqueie o loop de eventos com I/O ou
+  processamento demorado.
 
 ## Persistência e APIs
 
@@ -65,13 +98,23 @@
 
 - Toda mudança de comportamento deve considerar testes (pytest).
 - Teste o resultado observável, não os detalhes internos.
-- Teste GUI com casos de uso, controladores ou janelas falsas; não dependa de display real na suíte padrão.
-- O `validate` exige 80% de cobertura. Não coloque lógica em `build_window` nem em `create_*_panel`: elas ficam fora da medição por exigirem display.
+- Com a capacidade `gui`: teste com casos de uso, controladores ou janelas
+  falsas; não dependa de display real na suíte padrão.
+- O limite de cobertura vem do perfil (`show-profile`); não o reduza para
+  fazer passar, e não escreva teste de caso impossível para subir o número.
+- Não coloque lógica em `build_window` nem em `create_*_panel`: construção de
+  widget não é testável sem display real, então a lógica ali fica sem rede de
+  segurança. Por isso elas também são excluídas da medição — a exclusão é
+  consequência da regra, não o motivo dela.
+- Ao iterar, `python scripts/dev.py validate --changed` roda só os testes que
+  cobrem o que você mexeu e o que depende disso.
 
 ## Erros e diagnóstico
 
-- Na CLI, escreva erros em `stderr` e retorne código diferente de zero; não use o logger para falar com o usuário.
-- Na GUI, use o logger: um executável em modo windowed não tem terminal.
+- Com a capacidade `cli`: erros em `stderr` e código de saída diferente de
+  zero; não use o logger para falar com o usuário.
+- Com a capacidade `gui`: use o logger, porque um executável em modo windowed
+  não tem terminal.
 
 ## Documentação
 
