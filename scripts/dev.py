@@ -226,6 +226,7 @@ def task_validate(args: list[str]) -> int:
             "script": _script,
             "environment_script": _environment_script,
             "build": _build_cmd,
+            "run": _run,
         },
     )
 

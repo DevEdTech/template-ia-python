@@ -33,6 +33,7 @@ import sys
 from collections.abc import Callable, Sequence
 from dataclasses import replace
 from pathlib import Path
+from typing import cast
 
 from scripts.project_config import (
     EXTERNAL_SUITES,
@@ -55,9 +56,9 @@ CONFIG_FILES = {
 }
 DOC_FILES = {"README.md", "AGENTS.md", "CLAUDE.md", "CONTRIBUTING.md", "SECURITY.md"}
 
-#: Assinatura dos construtores de comando injetados pelo `dev.py`, que sabe se
-#: as ferramentas rodam via `uv run` ou `python -m`.
-CommandBuilders = dict[str, Callable[..., list[str]]]
+#: Construtores de comando e executor injetados pelo `dev.py`, que sabe se as
+#: ferramentas rodam via `uv run` ou `python -m`.
+CommandBuilders = dict[str, Callable[..., object]]
 
 
 def _classify(paths: Sequence[str]) -> set[str]:
@@ -115,11 +116,17 @@ def _expand(paths: Sequence[str], known: Sequence[str]) -> list[str]:
     return sorted(expanded)
 
 
-def _run(command: Sequence[str], dry_run: bool) -> int:
-    print(f"\n$ {' '.join(command)}", flush=True)
+def _run(command: Sequence[str], dry_run: bool, runner: Callable[[Sequence[str]], int]) -> int:
+    """Executa pelo runner injetado.
+
+    A execucao fica com quem chamou (`dev.py`), nao aqui: com um unico ponto de
+    execucao, o `--dry-run` e os testes do runner continuam valendo para o
+    `validate` como para qualquer outra tarefa.
+    """
     if dry_run:
+        print(f"\n$ {' '.join(command)}", flush=True)
         return 0
-    return subprocess.run(list(command), cwd=PROJECT_ROOT, check=False).returncode
+    return runner(command)
 
 
 def _commands_for(
@@ -133,9 +140,9 @@ def _commands_for(
     target_paths: Sequence[str],
 ) -> list[list[str]]:
     """Monta os comandos de uma suite, conforme perfil e escopo da execucao."""
-    tool = build["tool"]
-    script = build["script"]
-    environment_script = build["environment_script"]
+    tool = cast("Callable[..., list[str]]", build["tool"])
+    script = cast("Callable[..., list[str]]", build["script"])
+    environment_script = cast("Callable[..., list[str]]", build["environment_script"])
 
     if suite.name == "sync-skills":
         return [script("sync_skills.py")]
@@ -163,7 +170,7 @@ def _commands_for(
         # arquivo de configuracao nao sabe se o projeto e prototipo.
         return [tool("pytest", "--cov", f"--cov-fail-under={config.coverage}")]
     if suite.name == "build":
-        return [build["build"]()]
+        return [cast("Callable[[], list[str]]", build["build"])()]
     if suite.name == "smoke-package":
         return [environment_script("smoke_package.py")]
     raise AssertionError(f"suite sem comando: {suite.name}")
@@ -205,6 +212,7 @@ def run_validate(args: list[str], build: CommandBuilders) -> int:
     parser.add_argument("--dry-run", action="store_true", help="mostra o plano sem executar")
     options = parser.parse_args(args)
 
+    runner = cast("Callable[[Sequence[str]], int]", build["run"])
     config = read_project_config()
     if options.strict:
         config = replace(config, profile="rigoroso")
@@ -310,7 +318,7 @@ def run_validate(args: list[str], build: CommandBuilders) -> int:
         )
         status = 0
         for command in commands:
-            status = _run(command, options.dry_run)
+            status = _run(command, options.dry_run, runner)
             if status != 0:
                 break
         if status == 0:
@@ -340,12 +348,14 @@ def main(argv: list[str] | None = None) -> int:
     if str(PROJECT_ROOT) not in sys.path:
         sys.path.insert(0, str(PROJECT_ROOT))
     from scripts.dev import _build_cmd, _environment_script, _script, _tool
+    from scripts.dev import _run as dev_run
 
     builders: CommandBuilders = {
         "tool": _tool,
         "script": _script,
         "environment_script": _environment_script,
         "build": _build_cmd,
+        "run": dev_run,
     }
     return run_validate(list(argv if argv is not None else sys.argv[1:]), builders)
 
