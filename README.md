@@ -170,6 +170,7 @@ O runner `scripts/dev.py` é o equivalente cross-platform ao `npm run` — funci
 | `python scripts/dev.py check-skills`     | Verifica se as cópias das skills estão sincronizadas             |
 | `python scripts/dev.py check-architecture` | Verifica as fronteiras entre app, features e shared            |
 | `python scripts/dev.py check-docs`       | Valida links, tarefas e referências da documentação              |
+| `python scripts/dev.py check-lockfile`   | Confere se o `uv.lock` corresponde ao `pyproject.toml` |
 | `python scripts/dev.py generate-feature --name clientes` | Gera a estrutura inicial de uma feature           |
 | `python scripts/dev.py smoke-package`    | Instala e testa o wheel em um ambiente limpo                     |
 | `python scripts/dev.py check-workflows`  | Valida os workflows do GitHub Actions (actionlint)               |

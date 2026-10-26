@@ -96,6 +96,9 @@ SUITES: tuple[Suite, ...] = (
         triggers=("src",),
     ),
     Suite("check-docs", "Documentacao", ADVISORY_IN_DRAFT, triggers=("docs",)),
+    # O CI instala com `uv sync --locked`: lockfile divergente derruba todos
+    # os jobs da matriz de uma vez, e isto pega antes.
+    Suite("check-lockfile", "Lockfile", ADVISORY_IN_DRAFT, quick=True, triggers=("config",)),
     Suite(
         "format-check",
         "Formatacao",

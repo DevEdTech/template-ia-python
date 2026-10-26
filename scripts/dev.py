@@ -132,6 +132,10 @@ def task_check_architecture(args: list[str]) -> int:
     return _run(_script("check_architecture.py", *args))
 
 
+def task_check_lockfile(args: list[str]) -> int:
+    return _run(_script("check_lockfile.py", *args))
+
+
 def task_check_docs(args: list[str]) -> int:
     return _run(_script("check_docs.py", *args))
 
@@ -247,6 +251,10 @@ TASKS = {
     "check-architecture": (
         task_check_architecture,
         "Verifica as fronteiras entre app, features e shared.",
+    ),
+    "check-lockfile": (
+        task_check_lockfile,
+        "Confere se o uv.lock corresponde ao pyproject.toml.",
     ),
     "check-docs": (task_check_docs, "Valida links e comandos da documentação."),
     "generate-feature": (task_generate_feature, "Gera o esqueleto de uma feature."),
